@@ -1,0 +1,33 @@
+version: '3.5'
+
+services:
+
+  launcher:
+    image: launcher
+    build:
+      context: launcher
+      dockerfile: Dockerfile
+    volumes:
+      - './launcher/container:/usr/src/app'
+    ports:
+      - 5000:5000
+    environment:
+      - APP_NAME=launcher
+      - FLASK_DEBUG=1
+      - PYTHONUNBUFFERED=0
+      - APP_SETTINGS=launcher.config.ProductionConfig
+      - DATABASE_URL=postgres://postgres:postgres@web-db:5432/users_dev
+      - DATABASE_TEST_URL=postgres://postgres:postgres@web-db:5432/users_test
+    depends_on:
+      - web-db
+
+  web-db:
+    container_name: web-db
+    build:
+      context: db
+      dockerfile: Dockerfile
+    ports:
+      - 5435:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
