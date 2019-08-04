@@ -44,9 +44,11 @@ def create_app(script_info=None):
     # register blueprints
     from launcher.user.views import user_blueprint
     from launcher.main.views import main_blueprint
+    from launcher.mc_servers.views import mc_servers_blueprint
 
     app.register_blueprint(user_blueprint)
     app.register_blueprint(main_blueprint)
+    app.register_blueprint(mc_servers_blueprint, url_prefix='/servers')
 
     # flask login
     from launcher.user.models import User
