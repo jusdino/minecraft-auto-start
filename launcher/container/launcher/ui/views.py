@@ -1,5 +1,4 @@
 from flask import Blueprint, send_from_directory
-from flask_login import login_required
 
 ng_ui_blueprint = Blueprint("ui", __name__, static_folder='static')
 
