@@ -1,3 +1,4 @@
 <div class="container">
-  <router-outlet></router-outlet>
+  <router-outlet *ngIf="auth.authContext.authenticated$ | async; else elseBlock"></router-outlet>
+  <ng-template #elseBlock><login></login></ng-template>
 </div>

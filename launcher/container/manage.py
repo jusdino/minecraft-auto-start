@@ -5,7 +5,7 @@ import coverage
 from flask.cli import FlaskGroup
 
 from launcher import create_app, db
-from launcher.user.models import User
+from launcher.auth.models import User
 import subprocess
 import sys
 

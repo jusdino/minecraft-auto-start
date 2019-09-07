@@ -1,7 +1,8 @@
 import os
+from datetime import timedelta
+import uuid
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-import uuid
 
 
 class BaseConfig(object):
@@ -13,6 +14,7 @@ class BaseConfig(object):
     SECRET_KEY = os.getenv("SECRET_KEY", str(uuid.uuid4()))
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     WTF_CSRF_ENABLED = False
+    TOKEN_TTL = timedelta(minutes=1)
 
 
 class DevelopmentConfig(BaseConfig):

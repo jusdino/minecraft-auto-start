@@ -42,16 +42,14 @@ def create_app(script_info=None):
     migrate.init_app(app, db)
 
     # register blueprints
-    from launcher.user.views import user_blueprint
-    from launcher.main.views import main_blueprint
-    from launcher.mc_servers.views import mc_servers_blueprint
+    from launcher.auth.views import auth_blueprint
+    from launcher.ui.views import ng_ui_blueprint
 
-    app.register_blueprint(user_blueprint)
-    app.register_blueprint(main_blueprint)
-    app.register_blueprint(mc_servers_blueprint, url_prefix='/servers')
+    app.register_blueprint(auth_blueprint, url_prefix='/auth')
+    app.register_blueprint(ng_ui_blueprint, url_prefix='/ui')
 
     # flask login
-    from launcher.user.models import User
+    from launcher.auth.models import User
 
     login_manager.login_view = "user.login"
     login_manager.login_message_category = "danger"
@@ -63,19 +61,19 @@ def create_app(script_info=None):
     # error handlers
     @app.errorhandler(401)
     def unauthorized_page(error):
-        return render_template("errors/401.html"), 401
+        return render_template("errors/401.json"), 401
 
     @app.errorhandler(403)
     def forbidden_page(error):
-        return render_template("errors/403.html"), 403
+        return render_template("errors/403.json"), 403
 
     @app.errorhandler(404)
     def page_not_found(error):
-        return render_template("errors/404.html"), 404
+        return render_template("errors/404.json"), 404
 
     @app.errorhandler(500)
     def server_error_page(error):
-        return render_template("errors/500.html"), 500
+        return render_template("errors/500.json"), 500
 
     # shell context for flask cli
     @app.shell_context_processor

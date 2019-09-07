@@ -10,19 +10,19 @@ services:
     volumes:
       - './launcher/container:/usr/src/app'
     ports:
-      - 5000:5000
+      - 8080:5000
     environment:
       - APP_NAME=launcher
       - FLASK_DEBUG=1
       - PYTHONUNBUFFERED=0
       - APP_SETTINGS=launcher.config.ProductionConfig
-      - DATABASE_URL=postgres://postgres:postgres@web-db:5432/users_dev
-      - DATABASE_TEST_URL=postgres://postgres:postgres@web-db:5432/users_test
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/users_dev
+      - DATABASE_TEST_URL=postgres://postgres:postgres@db:5432/users_test
     depends_on:
-      - web-db
+      - db
 
-  web-db:
-    container_name: web-db
+  db:
+    container_name: db
     build:
       context: db
       dockerfile: Dockerfile

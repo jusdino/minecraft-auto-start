@@ -1,6 +1,7 @@
 import datetime
 
 from flask import current_app
+from flask_bcrypt import generate_password_hash, check_password_hash
 
 from launcher import db, bcrypt
 
@@ -11,7 +12,7 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     email = db.Column(db.String(255), unique=True, nullable=False)
-    password = db.Column(db.String(255), nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
     registered_on = db.Column(db.DateTime, nullable=False)
     admin = db.Column(db.Boolean, nullable=False, default=False)
 
@@ -23,6 +24,24 @@ class User(db.Model):
         self.registered_on = datetime.datetime.now()
         self.admin = admin
 
+    @property
+    def password(self):
+        """
+        For getting purposes, we'll consider password
+        and password_hash to be synonymous.
+        """
+        return self.password_hash
+
+    @password.setter
+    def password(self, password):
+        """
+        Automatically hash passwords before storage
+        """
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
     def is_authenticated(self):
         return True
 
@@ -33,7 +52,8 @@ class User(db.Model):
         return False
 
     def get_id(self):
-        return self.id
+        return str(self.id)
 
     def __repr__(self):
-        return "<User {0}>".format(self.email)
+        return "<User(id='{id}', name='{name}')>".format(
+            id=self.id, name=self.name)
