@@ -8,7 +8,7 @@ base_blueprint = Blueprint("base", __name__)
 
 
 @base_blueprint.route('/healthcheck')
-@auth_required
+@auth_required('user')
 def healthcheck():
     return jsonify({'message': 'OK'})
 

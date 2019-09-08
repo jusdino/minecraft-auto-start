@@ -16,7 +16,7 @@ def login():
     user = {
         'email': data['email']
     }
-    token, expiry = encode_auth_token(user['email'])
+    token, expiry = encode_auth_token(user['email'], ['user'])
     return jsonify({
         'user': user,
         'token': token.decode('utf-8'),

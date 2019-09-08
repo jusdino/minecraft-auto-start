@@ -6,23 +6,28 @@ from flask import request, current_app, g
 from werkzeug.exceptions import abort
 
 
-def auth_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        token_string = request.headers.get('authentication')
-        if token_string is None:
-            abort(401)
+def auth_required(scope: str):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            token_string = request.headers.get('authentication')
+            if token_string is None:
+                abort(401)
 
-        try:
-            g.token = decode_auth_token(token_string)
-        except jwt.InvalidTokenError:
-            abort(401)
+            try:
+                token = decode_auth_token(token_string)
+                if scope not in token['scopes']:
+                    abort(403)
+                g.token = token
+            except jwt.InvalidTokenError:
+                abort(401)
 
-        return f(*args, **kwargs)
-    return decorated_function
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
 
 
-def encode_auth_token(user_id):
+def encode_auth_token(user_id: str, scopes: list):
     """
     Generates the Auth Token
     :return: string
@@ -35,7 +40,8 @@ def encode_auth_token(user_id):
     payload = {
         'exp': expiry,
         'iat': now,
-        'sub': user_id
+        'sub': user_id,
+        'scopes': scopes
     }
     return jwt.encode(payload, current_app.config['SECRET_KEY'], algorithm='HS256'), expiry_timestamp
 
