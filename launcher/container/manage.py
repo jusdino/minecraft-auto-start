@@ -1,4 +1,7 @@
+#!/usr/bin/env python
+
 import unittest
+from getpass import getpass
 
 import coverage
 
@@ -38,9 +41,20 @@ def drop_db():
 
 
 @cli.command()
+def create_user():
+    """Creates the admin user."""
+    email = input('Email: ')
+    password = getpass('Password: ')
+    db.session.add(User(email=email, password=password, admin=False))
+    db.session.commit()
+
+
+@cli.command()
 def create_admin():
     """Creates the admin user."""
-    db.session.add(User(email="ad@min.com", password="admin", admin=True))
+    email = input('Email: ')
+    password = getpass('Password: ')
+    db.session.add(User(email=email, password=password, admin=True))
     db.session.commit()
 
 

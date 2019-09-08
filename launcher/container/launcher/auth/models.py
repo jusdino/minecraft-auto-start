@@ -1,9 +1,8 @@
 import datetime
 
-from flask import current_app
 from flask_bcrypt import generate_password_hash, check_password_hash
 
-from launcher import db, bcrypt
+from launcher import db
 
 
 class User(db.Model):
@@ -16,13 +15,9 @@ class User(db.Model):
     registered_on = db.Column(db.DateTime, nullable=False)
     admin = db.Column(db.Boolean, nullable=False, default=False)
 
-    def __init__(self, email, password, admin=False):
-        self.email = email
-        self.password = bcrypt.generate_password_hash(
-            password, current_app.config.get("BCRYPT_LOG_ROUNDS")
-        ).decode("utf-8")
-        self.registered_on = datetime.datetime.now()
-        self.admin = admin
+    def __init__(self, **kwargs):
+        super(User, self).__init__(**kwargs)
+        self.registered_on = datetime.datetime.now(tz=datetime.timezone.utc)
 
     @property
     def password(self):
@@ -37,10 +32,10 @@ class User(db.Model):
         """
         Automatically hash passwords before storage
         """
-        self.password_hash = generate_password_hash(password)
+        self.password_hash = generate_password_hash(password).decode('utf-8')
 
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        return check_password_hash(self.password_hash.encode('utf-8'), password)
 
     def is_authenticated(self):
         return True
@@ -54,6 +49,15 @@ class User(db.Model):
     def get_id(self):
         return str(self.id)
 
+    @property
+    def scopes(self):
+        if self.admin:
+            return ['user', 'admin']
+        return ['user']
+
+    @classmethod
+    def get_user_by_email(cls, email):
+        return cls.query.filter_by(email=email).first()
+
     def __repr__(self):
-        return "<User(id='{id}', name='{name}')>".format(
-            id=self.id, name=self.name)
+        return f"<User(id='{self.id}', email='{self.email}')>"
