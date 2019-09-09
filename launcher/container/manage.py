@@ -1,30 +1,13 @@
 #!/usr/bin/env python
 
-import unittest
 from getpass import getpass
-
-import coverage
-
 from flask.cli import FlaskGroup
 
 from launcher import create_app, db
 from launcher.auth.models import User
-import subprocess
-import sys
 
 app = create_app()
 cli = FlaskGroup(create_app=create_app)
-
-# code coverage
-COV = coverage.coverage(
-    branch=True,
-    include="launcher/*",
-    omit=[
-        "launcher/tests/*",
-        "launcher/config.py",
-    ],
-)
-COV.start()
 
 
 @cli.command()
@@ -65,37 +48,9 @@ def create_data():
 
 
 @cli.command()
-def test():
-    """Runs the unit tests without test coverage."""
-    tests = unittest.TestLoader().discover("project/tests", pattern="test*.py")
-    result = unittest.TextTestRunner(verbosity=2).run(tests)
-    if result.wasSuccessful():
-        sys.exit(0)
-    else:
-        sys.exit(1)
-
-
-@cli.command()
-def cov():
-    """Runs the unit tests with coverage."""
-    tests = unittest.TestLoader().discover("project/tests")
-    result = unittest.TextTestRunner(verbosity=2).run(tests)
-    if result.wasSuccessful():
-        COV.stop()
-        COV.save()
-        print("Coverage Summary:")
-        COV.report()
-        COV.html_report()
-        COV.erase()
-        sys.exit(0)
-    else:
-        sys.exit(1)
-
-
-@cli.command()
-def flake():
-    """Runs flake8 on the project."""
-    subprocess.run(["flake8", "project"])
+def get_routes():
+    for rule in app.url_map.iter_rules():
+        print(rule)
 
 
 if __name__ == "__main__":

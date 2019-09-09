@@ -8,13 +8,14 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { AuthModule } from './auth/auth.module';
 import { LoginComponent } from './auth/login/login.component';
-import { ServersComponent } from './servers/servers.component';
+import { MCServersModule } from './mcservers/mcservers.module';
+import { MCServersComponent } from './mcservers/mcservers.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
-    ServersComponent
+    MCServersComponent
   ],
   imports: [
     BrowserModule,

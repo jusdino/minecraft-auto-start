@@ -1,12 +1,12 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
-import { ServersComponent } from './servers/servers.component';
+import { MCServersComponent } from './mcservers/mcservers.component';
 import { LoginComponent } from './auth/login/login.component';
 
 const routes: Routes = [
 	{ path: '', redirectTo: '/servers', pathMatch: 'full' },
-	{ path: 'servers', component: ServersComponent },
+	{ path: 'servers', component: MCServersComponent },
   { path: 'login', component: LoginComponent }
 ];
 

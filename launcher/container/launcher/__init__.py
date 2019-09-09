@@ -3,6 +3,7 @@ import os
 from flask import Flask, jsonify
 from flask_bcrypt import Bcrypt
 from flask_debugtoolbar import DebugToolbarExtension
+from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
@@ -12,6 +13,7 @@ bcrypt = Bcrypt()
 toolbar = DebugToolbarExtension()
 db = SQLAlchemy()
 migrate = Migrate()
+ma = Marshmallow()
 
 
 def create_app(script_info=None):
@@ -30,15 +32,18 @@ def create_app(script_info=None):
     toolbar.init_app(app)
     db.init_app(app)
     migrate.init_app(app, db)
+    ma.init_app(app)
 
     # register blueprints
     from launcher.auth.views import auth_blueprint
     from launcher.ui.views import ng_ui_blueprint
     from launcher.base.views import base_blueprint
+    from launcher.servers.views import servers_blueprint
 
     app.register_blueprint(base_blueprint)
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
     app.register_blueprint(ng_ui_blueprint, url_prefix='/ui')
+    app.register_blueprint(servers_blueprint, url_prefix='/servers')
 
     # flask login
     from launcher.auth.models import User

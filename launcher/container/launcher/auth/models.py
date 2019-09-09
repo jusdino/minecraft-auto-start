@@ -1,8 +1,12 @@
-import datetime
+from datetime import datetime, timezone
 
 from flask_bcrypt import generate_password_hash, check_password_hash
 
 from launcher import db
+
+
+def now():
+    return datetime.now(tz=timezone.utc)
 
 
 class User(db.Model):
@@ -12,12 +16,8 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     email = db.Column(db.String(255), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
-    registered_on = db.Column(db.DateTime, nullable=False)
+    registered_on = db.Column(db.DateTime, nullable=False, default=now)
     admin = db.Column(db.Boolean, nullable=False, default=False)
-
-    def __init__(self, **kwargs):
-        super(User, self).__init__(**kwargs)
-        self.registered_on = datetime.datetime.now(tz=datetime.timezone.utc)
 
     @property
     def password(self):

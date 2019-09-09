@@ -15,6 +15,7 @@ class BaseConfig(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     WTF_CSRF_ENABLED = False
     TOKEN_TTL = timedelta(minutes=1)
+    SERVER_STATUS_TTL = timedelta(seconds=30)
 
 
 class DevelopmentConfig(BaseConfig):

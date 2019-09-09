@@ -1,0 +1,16 @@
+<h2>Minecraft Servers</h2>
+<div *ngFor="let server of mcServers.servers$ | async" class="card bg-light border-dark mb-3">
+  <div class="card-header">
+    <div class="row">
+      <div class="col-3">
+        <img style="max-width: 100px" src="{{server.status.favicon}}" alt="Card image cap">
+      </div>
+      <div class="col">
+        <h3>{{server.name}}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="card-body">
+    <p>{{server.status.players.online}} of {{server.status.players.max}} players online</p>
+  </div>
+</div>
