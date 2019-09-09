@@ -27,7 +27,7 @@ class LaunchableServerView(Resource):
                 abort(404)
             schema = LaunchableServerSchema()
         else:
-            servers = LaunchableServer.query.all()
+            servers = LaunchableServer.query.order_by(LaunchableServer.name).all()
             schema = LaunchableServerSchema(many=True)
         result = schema.dump(servers)
         # Save any status updates

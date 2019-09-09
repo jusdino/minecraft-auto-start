@@ -14,7 +14,7 @@ class BaseConfig(object):
     SECRET_KEY = os.getenv("SECRET_KEY", str(uuid.uuid4()))
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     WTF_CSRF_ENABLED = False
-    TOKEN_TTL = timedelta(minutes=1)
+    TOKEN_TTL = timedelta(hours=1)
     SERVER_STATUS_TTL = timedelta(seconds=30)
 
 

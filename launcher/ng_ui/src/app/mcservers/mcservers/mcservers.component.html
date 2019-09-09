@@ -3,7 +3,7 @@
   <div class="card-header">
     <div class="row">
       <div class="col-3">
-        <img style="max-width: 100px" src="{{server.status.favicon}}" alt="Card image cap">
+        <img style="max-width: 100px" src="{{server.status.favicon}}" alt="X">
       </div>
       <div class="col">
         <h3>{{server.name}}</h3>
@@ -14,3 +14,5 @@
     <p>{{server.status.players.online}} of {{server.status.players.max}} players online</p>
   </div>
 </div>
+<app-mcserver-add *ngIf="auth.authContext.user.admin"></app-mcserver-add>
+

@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { MCServersService } from './mcservers.service';
+import { AuthService } from '../../auth/auth.service';
+import { MCServersService } from '../mcservers.service';
 
 @Component({
   selector: 'app-mcservers',
@@ -8,6 +9,7 @@ import { MCServersService } from './mcservers.service';
 })
 export class MCServersComponent {
   constructor(
-    public mcServers: MCServersService
+    public mcServers: MCServersService,
+    public auth: AuthService
   ) {}
 }

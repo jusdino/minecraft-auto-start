@@ -2,10 +2,10 @@ import { MCStatus } from './mcstatus';
 
 export class MCServer {
   constructor(
-    public id: number,
-    public name: string,
-    public hostname: string,
-    public status: MCStatus
+    public name?: string,
+    public hostname?: string,
+    public id?: number,
+    public status?: MCStatus
   ) {}
 }
 

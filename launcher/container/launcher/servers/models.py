@@ -1,4 +1,4 @@
-from datetime import timezone, datetime
+from datetime import datetime
 
 from flask import current_app
 from mcstatus import MinecraftServer
@@ -41,10 +41,15 @@ class LaunchableServer(db.Model):
         if not hasattr(self, '_server'):
             self._server = MinecraftServer.lookup(self.hostname)
         schema = ServerStatusSchema()
-        status = self._server.status()
-        self._status = schema.dumps(status)
-        self.status_time = datetime.utcnow()
-        return status
+        try:
+            status = self._server.status()
+            self._status = schema.dumps(status)
+            self.status_time = datetime.utcnow()
+        except (ConnectionRefusedError, BrokenPipeError, OSError):
+            self._status = schema.dumps({})
+            self.status_time = datetime.utcnow()
+        return self._status
+
 
     @property
     def status_expired(self):

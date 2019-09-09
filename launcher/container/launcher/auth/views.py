@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, g
 
 from launcher.auth import encode_auth_token, auth_required
 from launcher.auth.models import User
+from launcher.auth.schema import UserSchema
 
 auth_blueprint = Blueprint('user', __name__)
 
@@ -15,11 +16,9 @@ def login():
     if user is None or not user.check_password(data['password']):
         return jsonify({'message': 'Invalid credentials'}), 401
     token, expiry = encode_auth_token(user)
-    user_data = {
-        'email': user.email
-    }
+    user_serializer = UserSchema()
     return jsonify({
-        'user': user_data,
+        'user': user_serializer.dump(user),
         'token': token.decode('utf-8'),
         'expires': expiry
     })

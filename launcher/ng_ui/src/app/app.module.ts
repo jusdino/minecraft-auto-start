@@ -9,20 +9,19 @@ import { AppComponent } from './app.component';
 import { AuthModule } from './auth/auth.module';
 import { LoginComponent } from './auth/login/login.component';
 import { MCServersModule } from './mcservers/mcservers.module';
-import { MCServersComponent } from './mcservers/mcservers.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    LoginComponent,
-    MCServersComponent
+    LoginComponent
   ],
   imports: [
     BrowserModule,
     FormsModule,
     AppRoutingModule,
     NgbModule,
-    AuthModule
+    AuthModule,
+    MCServersModule
   ],
   providers: [],
   bootstrap: [AppComponent]
