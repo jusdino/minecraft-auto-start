@@ -15,7 +15,7 @@ module "front_asg" {
   source = "terraform-aws-modules/autoscaling/aws"
   version = "~> 3.0"
 
-  user_date = "echo \"ECS_CLUSTER=${aws_ecs_cluster.front.name}\" > /etc/ecs/ecs.config"
+  user_data = "echo \"ECS_CLUSTER=${aws_ecs_cluster.front.name}\" > /etc/ecs/ecs.config"
   name = aws_ecs_cluster.front.name
 
   lc_name = aws_ecs_cluster.front.name
