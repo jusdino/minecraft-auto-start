@@ -30,7 +30,7 @@ module "front_asg" {
   min_size = 0
   max_size = 1
   desired_capacity = 1
-  wait_for_capacity_timeout = 300
+  wait_for_capacity_timeout = "300s"
 
   tags_as_map = merge({Name = aws_ecs_cluster.front.name}, var.tags)
 }
