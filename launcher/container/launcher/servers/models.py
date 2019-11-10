@@ -50,7 +50,6 @@ class LaunchableServer(db.Model):
             self.status_time = datetime.utcnow()
         return self._status
 
-
     @property
     def status_expired(self):
         return self.status_time + current_app.config['SERVER_STATUS_TTL'] < datetime.utcnow()

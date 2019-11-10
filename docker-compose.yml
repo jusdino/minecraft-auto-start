@@ -3,7 +3,7 @@ version: '3.5'
 services:
 
   launcher:
-    image: launcher
+    image: jusdino/minecraft-auto-start-launcher:latest
     build:
       context: launcher
       dockerfile: Dockerfile
@@ -23,6 +23,7 @@ services:
 
   db:
     container_name: db
+    image: jusdino/minecraft-auto-start-db:latest
     build:
       context: db
       dockerfile: Dockerfile
