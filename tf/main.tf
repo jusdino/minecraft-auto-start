@@ -26,7 +26,7 @@ module "front_asg" {
 
   asg_name = aws_ecs_cluster.front.name
   vpc_zone_identifier = data.terraform_remote_state.vpc.outputs.subnet_ids
-  health_check_type = ["EC2"]
+  health_check_type = "EC2"
   min_size = 0
   max_size = 1
   desired_capacity = 1
