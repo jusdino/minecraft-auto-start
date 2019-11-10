@@ -17,7 +17,7 @@ variable "ssh_in_cidr_blocks" {
 
 variable "public_key" {
   type = string
-  descrpition = "Public key for asg instances"
+  description = "Public key for asg instances"
 }
 
 variable "tags" {
