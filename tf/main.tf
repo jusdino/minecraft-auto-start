@@ -22,7 +22,7 @@ module "front_asg" {
   image_id = data.aws_ami.ecs.id
   instance_type = "t3.micro"
   key_name = aws_key_pair.front.key_name
-  security_groups = ["TODO-security-groups"]
+  security_groups = [aws_security_group.front.id]
 
   asg_name = aws_ecs_cluster.front.name
   vpc_zone_identifier = data.terraform_remote_state.vpc.outputs.subnet_ids
