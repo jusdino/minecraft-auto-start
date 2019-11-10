@@ -25,7 +25,7 @@ module "front_asg" {
   security_groups = ["TODO-security-groups"]
 
   asg_name = aws_ecs_cluster.front.name
-  vpc_zone_identifier = data.terraform_remote_state.vpc.subnet_ids
+  vpc_zone_identifier = data.terraform_remote_state.vpc.outputs.subnet_ids
   health_check_type = ["EC2"]
   min_size = 0
   max_size = 1
@@ -49,7 +49,7 @@ data "aws_ami" "ecs" {
 resource "aws_security_group" "front" {
   name = aws_ecs_cluster.front.name
   description = "Allow ssh in"
-  vpc_id = data.terraform_remote_state.vpc.vpc_id
+  vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   ingress {
     from_port = 22
