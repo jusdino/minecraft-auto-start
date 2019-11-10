@@ -15,6 +15,11 @@ variable "ssh_in_cidr_blocks" {
   description = "List of cidr blocks to allow ssh in from"
 }
 
+variable "public_key" {
+  type = string
+  descrpition = "Public key for asg instances"
+}
+
 variable "tags" {
   type = map(string)
 }

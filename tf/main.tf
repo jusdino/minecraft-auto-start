@@ -70,7 +70,7 @@ resource "aws_security_group" "front" {
 
 resource "aws_key_pair" "front" {
   key_name = "front"
-  public_key = file("~/.ssh/front-key.pub")
+  public_key = var.public_key
 }
 
 data "terraform_remote_state" "vpc" {
