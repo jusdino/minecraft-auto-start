@@ -18,6 +18,7 @@ module "front_asg" {
   user_data = <<USER_DATA
 #!/bin/bash
 echo "ECS_CLUSTER=${aws_ecs_cluster.front.name}" > /etc/ecs/ecs.config
+echo "ECS_IMAGE_PULL_BEHAVIOR=always" >> /etc/ecs/ecs.config
 USER_DATA
 
   name = aws_ecs_cluster.front.name
