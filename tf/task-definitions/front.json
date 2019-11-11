@@ -4,6 +4,7 @@
     "image": "jusdino/minecraft-auto-start-launcher:latest",
     "memory": 256,
     "essential": true,
+    "links": ["db:db"],
     "environment": [
       {
         "name": "APP_NAME",
