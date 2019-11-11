@@ -11,5 +11,5 @@ resource "aws_ecs_service" "front" {
   desired_count = 1
   launch_type = "EC2"
 //  propagate_tags = "SERVICE"
-  tags = merge({Name = "front"}, var.tags)
+//  tags = merge({Name = "front"}, var.tags)
 }
