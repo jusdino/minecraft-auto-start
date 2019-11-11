@@ -10,8 +10,4 @@ resource "aws_ecs_service" "front" {
   desired_count = 1
   launch_type = "EC2"
   propagate_tags = "SERVICE"
-  network_configuration {
-    subnets = data.terraform_remote_state.vpc.outputs.subnet_ids
-    security_groups = [aws_security_group.front.id]
-  }
 }
