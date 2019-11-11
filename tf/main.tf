@@ -64,6 +64,13 @@ resource "aws_security_group" "front" {
     cidr_blocks = var.ssh_in_cidr_blocks
   }
 
+	ingress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    cidr_blocks = var.ssh_in_cidr_blocks
+  }
+
   egress {
     from_port = 0
     to_port = 65535
