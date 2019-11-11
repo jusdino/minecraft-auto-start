@@ -1,0 +1,20 @@
+[
+  {
+    "name": "front",
+    "image": "jusdino/minecraft-auto-start-launcher:latest",
+    "memory": 256,
+    "essential": true,
+    "portMappings": [
+      {
+        "containerPort": 5000,
+        "hostPort": 80
+      }
+    ]
+  },
+  {
+    "name": "db",
+    "image": "jusdino/minecraft-auto-start-db:latest",
+    "memory": 512,
+    "essential": true
+  }
+]
