@@ -97,7 +97,7 @@ resource "aws_iam_role" "ecs_node" {
 POLICY
 }
 
-resource "aws_iam_policy" {
+resource "aws_iam_policy" "ecs_node" {
 	name = "ecs_node"
 	policy = <<POLICY
 {
