@@ -4,14 +4,32 @@
     "image": "jusdino/minecraft-auto-start-launcher:latest",
     "memory": 256,
     "essential": true,
-    "environment": {
-      "APP_NAME": "launcher",
-      "FLASK_DEBUG": 1,
-      "PYTHONUNBUFFERED": 0,
-      "APP_SETTINGS": "launcher.config.ProductionConfig",
-      "DATABASE_URL": "postgres://postgres:postgres@db:5432/users_dev",
-      "DATABASE_TEST_URL": "postgres://postgres:postgres@db:5432/users_test"
-    },
+    "environment": [
+      {
+        "name": "APP_NAME",
+        "value": "launcher"
+      },
+      {
+        "name": "FLASK_DEBUG",
+        "value": 1
+      },
+      {
+        "name": "PYTHONUNBUFFERED",
+        "value": 0
+      },
+      {
+        "name": "APP_SETTINGS",
+        "value": "launcher.config.ProductionConfig"
+      },
+      {
+        "name": "DATABASE_URL",
+        "value": "postgres://postgres:postgres@db:5432/users_dev"
+      },
+      {
+        "name": "DATABASE_TEST_URL",
+        "value": "postgres://postgres:postgres@db:5432/users_test"
+      }
+    ],
     "portMappings": [
       {
         "containerPort": 5000,
@@ -29,9 +47,15 @@
     "image": "jusdino/minecraft-auto-start-db:latest",
     "memory": 512,
     "essential": true,
-    "environment": {
-      "POSTGRES_USER": "postgres",
-      "POSTGRES_PASSWORD": "postgres"
-    }
+    "environment": [
+      {
+        "name": "POSTGRES_USER",
+        "value": "postgres"
+      },
+      {
+        "name": "POSTGRES_PASSWORD",
+        "value": "postgres"
+      }
+    ]
   }
 ]
