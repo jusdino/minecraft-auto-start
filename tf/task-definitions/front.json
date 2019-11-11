@@ -11,11 +11,11 @@
       },
       {
         "name": "FLASK_DEBUG",
-        "value": 1
+        "value": "1"
       },
       {
         "name": "PYTHONUNBUFFERED",
-        "value": 0
+        "value": "0"
       },
       {
         "name": "APP_SETTINGS",
