@@ -83,6 +83,24 @@ resource "aws_iam_role" "ecs_node" {
   name = "ecs-node"
   assume_role_policy = <<POLICY
 {
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+				"Service": "ec2.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+POLICY
+}
+
+resource "aws_iam_policy" {
+	name = "ecs_node"
+	policy = <<POLICY
+{
     "Version": "2012-10-17",
     "Statement": [
         {
@@ -104,6 +122,11 @@ resource "aws_iam_role" "ecs_node" {
     ]
 }
 POLICY
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_node" {
+	role = aws_iam_role.ecs_node.name
+	policy_arn = aws_iam_policy.ecs_node.arn
 }
 
 resource "aws_iam_instance_profile" "ecs_node" {
