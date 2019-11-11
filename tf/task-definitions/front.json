@@ -36,10 +36,12 @@
         "hostPort": 80
       }
     ],
-    "dependsOn": {
-      "condition": "START",
-      "containerName": "db"
-    }
+    "dependsOn": [
+      {
+        "condition": "START",
+        "containerName": "db"
+      }
+    ]
   },
   {
     "name": "db",
