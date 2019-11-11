@@ -1,5 +1,5 @@
 provider "aws" {
-	region = var.aws_region
+  region = var.aws_region
 }
 
 terraform {
@@ -25,6 +25,7 @@ USER_DATA
   lc_name = aws_ecs_cluster.front.name
   image_id = data.aws_ami.ecs.id
   instance_type = "t3.micro"
+  iam_instance_profile = aws_iam_instance_profile.ecs_node.name
   key_name = aws_key_pair.front.key_name
   associate_public_ip_address = true
   security_groups = [aws_security_group.front.id]
@@ -76,6 +77,38 @@ resource "aws_security_group" "front" {
 resource "aws_key_pair" "front" {
   key_name = "front"
   public_key = var.public_key
+}
+
+resource "aws_iam_role" "ecs_node" {
+  name = "ecs-node"
+  assume_role_policy = <<POLICY
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DescribeTags",
+                "ecs:DeregisterContainerInstance",
+                "ecs:DiscoverPollEndpoint",
+                "ecs:Poll",
+                "ecs:RegisterContainerInstance",
+                "ecs:StartTelemetrySession",
+                "ecs:UpdateContainerInstancesState",
+                "ecs:Submit*",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+POLICY
+}
+
+resource "aws_iam_instance_profile" "ecs_node" {
+  name = "ecs-node"
+  role = aws_iam_role.ecs_node.name
 }
 
 data "terraform_remote_state" "vpc" {
