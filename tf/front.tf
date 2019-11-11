@@ -1,6 +1,7 @@
 resource "aws_ecs_task_definition" "front" {
   family = "front"
   container_definitions = file("${path.module}/task-definitions/front.json")
+  tags = merge({Name = "front"}, var.tags)
 }
 
 resource "aws_ecs_service" "front" {
@@ -10,4 +11,5 @@ resource "aws_ecs_service" "front" {
   desired_count = 1
   launch_type = "EC2"
 //  propagate_tags = "SERVICE"
+  tags = merge({Name = "front"}, var.tags)
 }
