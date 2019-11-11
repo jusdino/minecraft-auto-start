@@ -16,6 +16,7 @@ module "front_asg" {
   version = "~> 3.0"
 
   user_data = <<USER_DATA
+#!/bin/bash
 echo "ECS_CLUSTER=${aws_ecs_cluster.front.name}" > /etc/ecs/ecs.config
 USER_DATA
 
