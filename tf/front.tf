@@ -9,5 +9,5 @@ resource "aws_ecs_service" "front" {
   task_definition = aws_ecs_task_definition.front.arn
   desired_count = 1
   launch_type = "EC2"
-  propagate_tags = "SERVICE"
+//  propagate_tags = "SERVICE"
 }
