@@ -1,6 +1,13 @@
 resource "aws_ecs_task_definition" "front" {
   family = "front"
   container_definitions = file("${path.module}/task-definitions/front.json")
+  volume {
+    name = "db-data"
+    docker_volume_configuration {
+      scope = "shared"
+      autoprovision = true
+    }
+  }
   tags = merge({Name = "front"}, var.tags)
 }
 
