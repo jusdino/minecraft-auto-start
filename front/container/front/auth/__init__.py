@@ -5,7 +5,7 @@ import jwt
 from flask import request, current_app, g
 from werkzeug.exceptions import abort
 
-from launcher.auth.models import User
+from front.auth.models import User
 
 
 def auth_required(scope: str):

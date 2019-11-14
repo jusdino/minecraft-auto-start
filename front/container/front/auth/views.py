@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify, g
 
-from launcher.auth import encode_auth_token, auth_required
-from launcher.auth.models import User
-from launcher.auth.schema import UserSchema
+from front.auth import encode_auth_token, auth_required
+from front.auth.models import User
+from front.auth.schema import UserSchema
 
 auth_blueprint = Blueprint('user', __name__)
 

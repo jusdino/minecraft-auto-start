@@ -3,8 +3,8 @@
 from getpass import getpass
 from flask.cli import FlaskGroup
 
-from launcher import create_app, db
-from launcher.auth.models import User
+from front import create_app, db
+from front.auth.models import User
 
 app = create_app()
 cli = FlaskGroup(create_app=create_app)

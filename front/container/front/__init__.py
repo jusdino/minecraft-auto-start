@@ -35,10 +35,10 @@ def create_app(script_info=None):
     ma.init_app(app)
 
     # register blueprints
-    from launcher.auth.views import auth_blueprint
-    from launcher.ui.views import ng_ui_blueprint
-    from launcher.base.views import base_blueprint
-    from launcher.servers.views import servers_blueprint
+    from front.auth.views import auth_blueprint
+    from front.ui.views import ng_ui_blueprint
+    from front.base.views import base_blueprint
+    from front.servers.views import servers_blueprint
 
     app.register_blueprint(base_blueprint)
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
@@ -46,7 +46,7 @@ def create_app(script_info=None):
     app.register_blueprint(servers_blueprint, url_prefix='/servers')
 
     # flask login
-    from launcher.auth.models import User
+    from front.auth.models import User
 
     # error handlers
     @app.errorhandler(401)

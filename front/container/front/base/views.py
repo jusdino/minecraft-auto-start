@@ -2,7 +2,7 @@ from flask import Blueprint, url_for
 from flask.json import jsonify
 from werkzeug.utils import redirect
 
-from launcher.auth import auth_required
+from front.auth import auth_required
 
 base_blueprint = Blueprint("base", __name__)
 

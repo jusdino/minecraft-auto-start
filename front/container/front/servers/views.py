@@ -3,10 +3,10 @@ from flask_restful import Resource, Api, abort
 from marshmallow import ValidationError
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
-from launcher import db
-from launcher.auth import auth_required
-from launcher.servers.models import LaunchableServer
-from launcher.servers.schema import LaunchableServerSchema
+from front import db
+from front.auth import auth_required
+from front.servers.models import LaunchableServer
+from front.servers.schema import LaunchableServerSchema
 
 servers_blueprint = Blueprint('servers', __name__)
 api = Api(servers_blueprint)

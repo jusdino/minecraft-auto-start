@@ -2,20 +2,20 @@ version: '3.5'
 
 services:
 
-  launcher:
-    image: jusdino/minecraft-auto-start-launcher:latest
+  front:
+    image: jusdino/minecraft-auto-start-front:latest
     build:
-      context: launcher
+      context: front
       dockerfile: Dockerfile
     volumes:
-      - './launcher/container:/usr/src/app'
+      - './front/container:/usr/src/app'
     ports:
       - 8080:5000
     environment:
-      - APP_NAME=launcher
+      - APP_NAME=minecraft-auto-start
       - FLASK_DEBUG=1
       - PYTHONUNBUFFERED=0
-      - APP_SETTINGS=launcher.config.ProductionConfig
+      - APP_SETTINGS=front.config.ProductionConfig
       - DATABASE_URL=postgres://postgres:postgres@db:5432/users_dev
       - DATABASE_TEST_URL=postgres://postgres:postgres@db:5432/users_test
     depends_on:
@@ -32,3 +32,10 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+
+  launcher:
+    image: jusdino/minecraft-auto-start-launcher:latest
+    build:
+      context: front
+      dockerfile: Dockerfile
+

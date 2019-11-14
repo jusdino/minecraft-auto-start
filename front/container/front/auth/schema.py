@@ -1,6 +1,6 @@
 from marshmallow import fields, post_load
-from launcher import ma
-from launcher.auth import User
+from front import ma
+from front.auth import User
 
 
 class UserSchema(ma.Schema):

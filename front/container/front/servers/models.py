@@ -3,7 +3,7 @@ from datetime import datetime
 from flask import current_app
 from mcstatus import MinecraftServer
 
-from launcher import db
+from front import db
 
 
 class LaunchableServer(db.Model):

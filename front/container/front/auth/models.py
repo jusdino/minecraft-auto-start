@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 from flask_bcrypt import generate_password_hash, check_password_hash
 
-from launcher import db
+from front import db
 
 
 def now():

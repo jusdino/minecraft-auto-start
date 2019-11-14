@@ -1,6 +1,6 @@
 from marshmallow import fields, post_load
-from launcher import ma
-from launcher.servers.models import LaunchableServer
+from front import ma
+from front.servers.models import LaunchableServer
 
 
 class DescrExtraSchema(ma.Schema):
