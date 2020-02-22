@@ -3,39 +3,44 @@ version: '3.5'
 services:
 
   front:
-    image: jusdino/minecraft-auto-start-front:latest
+    image: 'jusdino/minecraft-auto-start-front:latest'
     build:
-      context: front
-      dockerfile: Dockerfile
+      context: 'front'
+      dockerfile: 'Dockerfile'
     volumes:
       - './front/container:/usr/src/app'
     ports:
-      - 8080:5000
+      - '8080:5000'
     environment:
-      - APP_NAME=minecraft-auto-start
-      - FLASK_DEBUG=1
-      - PYTHONUNBUFFERED=0
-      - APP_SETTINGS=front.config.ProductionConfig
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/users_dev
-      - DATABASE_TEST_URL=postgres://postgres:postgres@db:5432/users_test
+      APP_NAME: 'minecraft-auto-start'
+      FLASK_DEBUG: '1'
+      PYTHONUNBUFFERED: '0'
+      APP_SETTINGS: 'front.config.ProductionConfig'
+      DATABASE_URL: 'postgres://postgres:postgres@db:5432/users_dev'
+      DATABASE_TEST_URL: 'postgres://postgres:postgres@db:5432/users_test'
     depends_on:
-      - db
+      - 'db'
 
   db:
-    container_name: db
-    image: jusdino/minecraft-auto-start-db:latest
+    image: 'jusdino/minecraft-auto-start-db:latest'
     build:
-      context: db
-      dockerfile: Dockerfile
+      context: 'db'
+      dockerfile: 'Dockerfile'
     ports:
-      - 5435:5432
+      - '5435:5432'
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'postgres'
 
   launcher:
-    image: jusdino/minecraft-auto-start-launcher:latest
+    image: 'jusdino/minecraft-auto-start-launcher:latest'
     build:
-      context: front
-      dockerfile: Dockerfile
-
+      context: 'launcher'
+      dockerfile: 'Dockerfile'
+    environment:
+      SSH_AGENT_KEY: ${SSH_AGENT_KEY}
+      GITHUB_PUBLIC_FINGERPRINT: ${GITHUB_PUBLIC_FINGERPRINT}
+      INFRA_LIVE_CLONE_URL: ${INFRA_LIVE_CLONE_URL}
+      TARGET_SERVER_PATH: ${TARGET_SERVER_PATH}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}

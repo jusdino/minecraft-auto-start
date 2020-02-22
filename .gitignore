@@ -3,4 +3,5 @@ venv/*
 *.iml
 .idea/*
 .env
+*.pem
 package-lock.json

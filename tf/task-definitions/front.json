@@ -1,7 +1,7 @@
 [
   {
     "name": "front",
-    "image": "jusdino/minecraft-auto-start-launcher:latest",
+    "image": "jusdino/minecraft-auto-start-front:latest",
     "memory": 256,
     "essential": true,
     "links": ["db:db"],
