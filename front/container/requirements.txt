@@ -2,12 +2,8 @@ Flask==1.0.2
 flask-restful
 Flask-Bcrypt==0.7.1
 Flask-DebugToolbar==0.10.1
-Flask-Migrate==2.2.0
-Flask-SQLAlchemy==2.3.2
 flask-marshmallow
-marshmallow-sqlalchemy
 Flask-Testing==0.7.1
-psycopg2-binary==2.7.4
 pyjwt
 mcstatus
 boto3

@@ -1,18 +1,16 @@
 import os
 
+import boto3
 from flask import Flask, jsonify
 from flask_bcrypt import Bcrypt
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_marshmallow import Marshmallow
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 
 
 # instantiate the extensions
 bcrypt = Bcrypt()
 toolbar = DebugToolbarExtension()
-db = SQLAlchemy()
-migrate = Migrate()
+dynamodb = boto3.resource('dynamodb')
 ma = Marshmallow()
 
 
@@ -22,16 +20,12 @@ def create_app(script_info=None):
     app = Flask(__name__)
 
     # set config
-    app_settings = os.getenv(
-        "APP_SETTINGS", "config.ProductionConfig"
-    )
+    app_settings = os.environ.get("APP_SETTINGS", "front.config.ProductionConfig")
     app.config.from_object(app_settings)
 
     # set up extensions
     bcrypt.init_app(app)
     toolbar.init_app(app)
-    db.init_app(app)
-    migrate.init_app(app, db)
     ma.init_app(app)
 
     # register blueprints
@@ -68,6 +62,6 @@ def create_app(script_info=None):
     # shell context for flask cli
     @app.shell_context_processor
     def ctx():
-        return {"app": app, "db": db}
+        return {"app": app, "dynamodb": dynamodb}
 
     return app

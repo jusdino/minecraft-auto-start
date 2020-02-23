@@ -16,21 +16,6 @@ services:
       FLASK_DEBUG: '1'
       PYTHONUNBUFFERED: '0'
       APP_SETTINGS: 'front.config.ProductionConfig'
-      DATABASE_URL: 'postgres://postgres:postgres@db:5432/users_dev'
-      DATABASE_TEST_URL: 'postgres://postgres:postgres@db:5432/users_test'
-    depends_on:
-      - 'db'
-
-  db:
-    image: 'jusdino/minecraft-auto-start-db:latest'
-    build:
-      context: 'db'
-      dockerfile: 'Dockerfile'
-    ports:
-      - '5435:5432'
-    environment:
-      POSTGRES_USER: 'postgres'
-      POSTGRES_PASSWORD: 'postgres'
 
   launcher:
     image: 'jusdino/minecraft-auto-start-launcher:latest'

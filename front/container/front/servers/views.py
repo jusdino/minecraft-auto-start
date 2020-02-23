@@ -1,9 +1,7 @@
 from flask import Blueprint, request
 from flask_restful import Resource, Api, abort
 from marshmallow import ValidationError
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
-from front import db
 from front.auth import auth_required
 from front.servers.models import LaunchableServer
 from front.servers.schema import LaunchableServerSchema
@@ -14,24 +12,26 @@ api = Api(servers_blueprint)
 
 class LaunchableServerView(Resource):
     @auth_required('user')
-    def get(self, server_id: int = None):
+    def get(self, hostname: int = None):
         """
         Get server data
 
-        :param int server_id: (Optional) Server id requested
+        :param int hostname: (Optional) Server id requested
         :return: Server(s) requested
         """
-        if server_id is not None:
-            server = LaunchableServer.query.get(server_id)
+        if hostname is not None:
+            server = LaunchableServer.get_server_by_hostname(hostname)
             if server is None:
                 abort(404)
             schema = LaunchableServerSchema()
+            result = schema.dump(server)
+            server.save()
         else:
-            servers = LaunchableServer.query.order_by(LaunchableServer.name).all()
+            servers = LaunchableServer.get_all_servers()
             schema = LaunchableServerSchema(many=True)
-        result = schema.dump(servers)
-        # Save any status updates
-        db.session.commit()
+            result = schema.dump(servers)
+            for s in servers:
+                s.save()
         return result
 
     @auth_required('admin')
@@ -49,13 +49,10 @@ class LaunchableServerView(Resource):
             return e.messages, 400
 
         try:
-            db.session.add(new_server)
-            db.session.commit()
-        except IntegrityError:
+            new_server.save()
+        except Exception:
             return {'error': 'duplicate server data'}
-        except SQLAlchemyError as e:
-            return {'error': str(e.__class__.__name__)}
         return schema.dump(new_server)
 
 
-api.add_resource(LaunchableServerView, '/<int:server_id>', '/', endpoint='servers')
+api.add_resource(LaunchableServerView, '/<hostname>', '/', endpoint='servers')

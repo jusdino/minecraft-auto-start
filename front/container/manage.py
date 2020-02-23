@@ -3,7 +3,7 @@
 from getpass import getpass
 from flask.cli import FlaskGroup
 
-from front import create_app, db
+from front import create_app
 from front.auth.models import User
 
 app = create_app()
@@ -11,25 +11,11 @@ cli = FlaskGroup(create_app=create_app)
 
 
 @cli.command()
-def create_db():
-    db.drop_all()
-    db.create_all()
-    db.session.commit()
-
-
-@cli.command()
-def drop_db():
-    """Drops the db tables."""
-    db.drop_all()
-
-
-@cli.command()
 def create_user():
     """Creates the admin user."""
     email = input('Email: ')
     password = getpass('Password: ')
-    db.session.add(User(email=email, password=password, admin=False))
-    db.session.commit()
+    User(email=email, password=password, admin=False).save()
 
 
 @cli.command()
@@ -37,8 +23,7 @@ def create_admin():
     """Creates the admin user."""
     email = input('Email: ')
     password = getpass('Password: ')
-    db.session.add(User(email=email, password=password, admin=True))
-    db.session.commit()
+    User(email=email, password=password, admin=True).save()
 
 
 @cli.command()

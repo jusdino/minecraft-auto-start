@@ -1,28 +1,78 @@
-from datetime import datetime
+import os
+from datetime import datetime, timezone
 
+from boto3.dynamodb.conditions import Attr
 from flask import current_app
 from mcstatus import MinecraftServer
 
-from front import db
+from front import dynamodb
 
 
-class LaunchableServer(db.Model):
+class LaunchableServer():
+    table = dynamodb.Table(os.environ['DYNAMODB_SERVERS_TABLE_NAME'])
 
-    __tablename__ = 'launchable_servers'
+    @classmethod
+    def get_server_by_hostname(cls, hostname):
+        item = cls.table.get_item(Key={'hostname': hostname},
+                                  ConsistentRead=False,
+                                  ReturnConsumedCapacity='NONE')
+        current_app.logger.debug('DynamoDB Item: %s', item)
+        return cls(**item['Item'])
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(255), nullable=False)
-    hostname = db.Column(db.String(255), unique=True, nullable=False)
-    _status = db.Column(db.String(524288))
-    status_time = db.Column(db.DateTime)
+    @classmethod
+    def get_all_servers(cls):
+        res = cls.table.scan(
+            ReturnConsumedCapacity='NONE',
+            ConsistentRead=False
+        )
+        current_app.logger.debug('DynamoDB Scan: %s', res)
+        return [cls(**server) for server in res['Items']]
+
+    def __init__(self, **kwargs):
+        self._data = dict(**kwargs)
+
+    @property
+    def name(self):
+        return self._data['name']
+
+    @name.setter
+    def name(self, value):
+        self._data['name'] = value
+
+    @property
+    def hostname(self):
+        return self._data['hostname']
+
+    @hostname.setter
+    def hostname(self, value):
+        self._data['hostname'] = value
+
+    @property
+    def _status(self):
+        return self._data['_status']
+
+    @_status.setter
+    def _status(self, value):
+        self._data['_status'] = value
+
+    @property
+    def status_time(self):
+        return datetime.fromtimestamp(float(self._data['status_time']))
+
+    @status_time.setter
+    def status_time(self, value: datetime):
+        self._data['status_time'] = str(value.timestamp())
 
     @property
     def status(self):
         from .schema import ServerStatusSchema
 
         schema = ServerStatusSchema()
-
-        if self._status is None or self.status_expired:
+        try:
+            status = self._status
+        except KeyError:
+            status = None
+        if status is None or self.status_expired:
             self.update_status()
         return schema.loads(self._status)
 
@@ -44,15 +94,23 @@ class LaunchableServer(db.Model):
         try:
             status = self._server.status()
             self._status = schema.dumps(status)
-            self.status_time = datetime.utcnow()
         except (ConnectionRefusedError, BrokenPipeError, OSError):
             self._status = schema.dumps({})
-            self.status_time = datetime.utcnow()
+        self.status_time = datetime.utcnow()
         return self._status
 
     @property
     def status_expired(self):
         return self.status_time + current_app.config['SERVER_STATUS_TTL'] < datetime.utcnow()
+
+    def save(self):
+        version = self._data.get('version', 0)
+        self._data['version'] = version + 1
+        if version > 0:
+            # Optimistic lock via condition - let fail if concurrent updates
+            self.table.put_item(Item=self._data, ConditionExpression=Attr('version').eq(version))
+        else:
+            self.table.put_item(Item=self._data)
 
     def __repr__(self):
         return f'<LaunchableServer(name={self.name}, hostname={self.hostname}>'

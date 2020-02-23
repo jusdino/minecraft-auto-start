@@ -21,7 +21,7 @@ def auth_required(scope: str):
                 if scope not in token['scopes']:
                     abort(403)
                 g.token = token
-                g.user = User.query.get(token['sub'])
+                g.user = User.get_user_by_email(token['sub'])
             except jwt.InvalidTokenError:
                 abort(401)
 
@@ -43,7 +43,7 @@ def encode_auth_token(user):
     payload = {
         'exp': expiry,
         'iat': now,
-        'sub': user.id,
+        'sub': user.email,
         'scopes': user.scopes
     }
     return jwt.encode(payload, current_app.config['SECRET_KEY'], algorithm='HS256'), expiry_timestamp

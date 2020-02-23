@@ -7,7 +7,8 @@ terraform {
 }
 
 locals {
-  app_key = "minecraft-auto-start"
+  app_acronym = "mas"
+  app_key = "${local.app_acronym}-${var.environment}"
 }
 
 resource "aws_ecs_cluster" "front" {

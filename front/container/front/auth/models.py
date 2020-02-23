@@ -1,23 +1,68 @@
+import os
 from datetime import datetime, timezone
 
+from flask import current_app
 from flask_bcrypt import generate_password_hash, check_password_hash
+from boto3.dynamodb.conditions import Attr
 
-from front import db
+from front import dynamodb
 
 
 def now():
     return datetime.now(tz=timezone.utc)
 
 
-class User(db.Model):
+class User():
+    table = dynamodb.Table(os.environ['DYNAMODB_AUTH_TABLE_NAME'])
 
-    __tablename__ = "users"
+    @classmethod
+    def get_user_by_email(cls, email):
+        item = cls.table.get_item(Key={'email': email},
+                                  ConsistentRead=True,
+                                  ReturnConsumedCapacity='NONE')
+        current_app.logger.debug('DynamoDB Item: %s', item)
+        return cls(**item['Item'])
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    email = db.Column(db.String(255), unique=True, nullable=False)
-    password_hash = db.Column(db.String(255), nullable=False)
-    registered_on = db.Column(db.DateTime, nullable=False, default=now)
-    admin = db.Column(db.Boolean, nullable=False, default=False)
+    def __init__(self, **kwargs):
+        try:
+            password = kwargs.pop('password')
+        except KeyError:
+            password = None
+        self._data = dict(**kwargs)
+        if password:
+            self.password = password
+
+    @property
+    def email(self):
+        return self._data['email']
+
+    @email.setter
+    def email(self, value):
+        self._data['email'] = value
+
+    @property
+    def password_hash(self):
+        return self._data['password_hash']
+
+    @password_hash.setter
+    def password_hash(self, value):
+        self._data['password_hash'] = value
+
+    @property
+    def registered_on(self):
+        return self._data['registered_on']
+
+    @registered_on.setter
+    def registered_on(self, value):
+        self._data['registered_on'] = value
+
+    @property
+    def admin(self):
+        return self._data['admin']
+
+    @admin.setter
+    def admin(self, value):
+        self._data['admin'] = value
 
     @property
     def password(self):
@@ -47,7 +92,7 @@ class User(db.Model):
         return False
 
     def get_id(self):
-        return str(self.id)
+        return str(self.email)
 
     @property
     def scopes(self):
@@ -55,9 +100,14 @@ class User(db.Model):
             return ['user', 'admin']
         return ['user']
 
-    @classmethod
-    def get_user_by_email(cls, email):
-        return cls.query.filter_by(email=email).first()
-
     def __repr__(self):
-        return f"<User(id='{self.id}', email='{self.email}')>"
+        return f"<User(email='{self.email}')>"
+
+    def save(self):
+        version = self._data.get('version', 0)
+        self._data['version'] = version + 1
+        if version > 0:
+            # Optimistic lock via condition - let fail if concurrent updates
+            self.table.put_item(Item=self._data, ConditionExpression=Attr('version').eq(version))
+        else:
+            self.table.put_item(Item=self._data)

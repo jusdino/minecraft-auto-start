@@ -10,6 +10,10 @@ variable "aws_region" {
   type = string
 }
 
+variable "environment" {
+  type = string
+}
+
 variable "ssh_in_cidr_blocks" {
   type = list(string)
   description = "List of cidr blocks to allow ssh in from"

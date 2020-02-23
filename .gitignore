@@ -6,4 +6,5 @@ venv/*
 *.pem
 *.pem.pub
 .terraform
+.python-version
 package-lock.json

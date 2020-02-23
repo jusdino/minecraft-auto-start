@@ -28,7 +28,6 @@ def login():
 @auth_required('user')
 def who_am_i():
     return jsonify({
-        'id': g.user.id,
         'email': g.user.email,
         'scopes': g.user.scopes
     })

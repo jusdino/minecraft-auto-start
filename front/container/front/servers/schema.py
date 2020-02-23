@@ -31,7 +31,6 @@ class ServerStatusSchema(ma.Schema):
 
 
 class LaunchableServerSchema(ma.Schema):
-    id = fields.String(dump_only=True)
     name = fields.String(required=True)
     hostname = fields.String(required=True)
     status = fields.Nested(ServerStatusSchema(), dump_only=True)
