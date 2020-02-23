@@ -8,4 +8,4 @@ done
 
 echo "PostgreSQL started"
 
-python manage.py $@
+python manage.py "$@"

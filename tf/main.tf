@@ -6,6 +6,10 @@ terraform {
   backend "s3" {}
 }
 
+locals {
+  app_key = "minecraft-auto-start"
+}
+
 resource "aws_ecs_cluster" "front" {
   name = "front"
   tags = merge({Name = "front"}, var.tags)
@@ -55,7 +59,7 @@ data "aws_ami" "ecs" {
 
 resource "aws_security_group" "front" {
   name = aws_ecs_cluster.front.name
-  description = "Allow ssh in"
+  description = aws_ecs_cluster.front.name
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   ingress {
@@ -65,7 +69,7 @@ resource "aws_security_group" "front" {
     cidr_blocks = var.ssh_in_cidr_blocks
   }
 
-	ingress {
+  ingress {
     from_port = 80
     to_port = 80
     protocol = "tcp"
@@ -87,7 +91,17 @@ resource "aws_key_pair" "front" {
   public_key = var.public_key
 }
 
+resource "aws_kms_key" "main" {
+  description = local.app_key
+}
+
+resource "aws_kms_alias" "main" {
+  name = "alias/${local.app_key}"
+  target_key_id = aws_kms_key.main.key_id
+}
+
 resource "aws_iam_role" "ecs_node" {
+  path = "/${local.app_key}/"
   name = "ecs-node"
   assume_role_policy = <<POLICY
 {
@@ -96,7 +110,7 @@ resource "aws_iam_role" "ecs_node" {
     {
       "Effect": "Allow",
       "Principal": {
-				"Service": "ec2.amazonaws.com"
+        "Service": "ec2.amazonaws.com"
       },
       "Action": "sts:AssumeRole"
     }
@@ -106,8 +120,8 @@ POLICY
 }
 
 resource "aws_iam_policy" "ecs_node" {
-	name = "ecs_node"
-	policy = <<POLICY
+  name = "${local.app_key}-ecs_node"
+  policy = <<POLICY
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -133,8 +147,8 @@ POLICY
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_node" {
-	role = aws_iam_role.ecs_node.name
-	policy_arn = aws_iam_policy.ecs_node.arn
+  role = aws_iam_role.ecs_node.name
+  policy_arn = aws_iam_policy.ecs_node.arn
 }
 
 resource "aws_iam_instance_profile" "ecs_node" {

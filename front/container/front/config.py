@@ -46,3 +46,4 @@ class ProductionConfig(BaseConfig):
         "sqlite:///{0}".format(os.path.join(basedir, "prod.db")),
     )
     WTF_CSRF_ENABLED = True
+    DYNAMO_DB_AUTH_TABLE_NAME = os.environ['DYNAMO_DB_AUTH_TABLE_NAME']

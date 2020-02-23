@@ -23,4 +23,4 @@ COPY container /usr/src/app
 
 # run server
 ENTRYPOINT ["./entrypoint.sh"]
-CMD ["run -h 0.0.0.0"]
+CMD ["run", "-h", "0.0.0.0"]

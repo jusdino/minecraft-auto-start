@@ -20,7 +20,7 @@
       },
       {
         "name": "APP_SETTINGS",
-        "value": "launcher.config.ProductionConfig"
+        "value": "front.config.ProductionConfig"
       },
       {
         "name": "DATABASE_URL",
@@ -29,6 +29,10 @@
       {
         "name": "DATABASE_TEST_URL",
         "value": "postgres://postgres:postgres@db:5432/users_test"
+      },
+      {
+        "name": "DYNAMO_DB_AUTH_TABLE_NAME",
+        "value": ""
       }
     ],
     "portMappings": [

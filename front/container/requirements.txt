@@ -10,3 +10,4 @@ Flask-Testing==0.7.1
 psycopg2-binary==2.7.4
 pyjwt
 mcstatus
+boto3

@@ -4,4 +4,6 @@ venv/*
 .idea/*
 .env
 *.pem
+*.pem.pub
+.terraform
 package-lock.json
