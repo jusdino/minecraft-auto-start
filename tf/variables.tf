@@ -14,6 +14,11 @@ variable "environment" {
   type = string
 }
 
+variable "front_instance_count" {
+  type = string
+  default = 1
+}
+
 variable "ssh_in_cidr_blocks" {
   type = list(string)
   description = "List of cidr blocks to allow ssh in from"

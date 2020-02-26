@@ -11,6 +11,7 @@ include {
 
 # These are the variables we have to pass in to use the module specified in the terragrunt configuration above
 inputs = {
+	front_instance_count = 2
 	ssh_in_cidr_blocks = ["1.2.3.4/32"]
 	infra_live_clone_url = "git@github.com:user/infrastructure-live-01.git"
 	public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCfoPeq2Dbnl1ZsJT24/JmiT/3g/XK4D46nWhajJbg/bmJLcx1R+c+q4rjdkUr82PykZ3EEsh9WorBf/Uc6xqVg6hiNhjrhLKJQ3WdJTgA2TTHFRXfbShDIOGojrkmrXr47gXHWmnD9FDAYGx7AEx/9o3E1bKn6P8il6RJ9r3YEbngwS10O6SCApV/Rf9Z9Cj0pGR5PY7nhqiBs/Qrp9Y7Hgi6R8KgH7Ay5n9CNFU8tNCYIaATA6/5Ij1tXCe4tbp1SBvkNhsyeicAkr3NMXwzIbb05MSfswwavSzGfcmECE1LsflTaSpQ9WEcrloX24zcu0/YjmD8H2E3jjdYnAKg9"
