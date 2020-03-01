@@ -21,7 +21,11 @@ class User():
                                   ConsistentRead=True,
                                   ReturnConsumedCapacity='NONE')
         current_app.logger.debug('DynamoDB Item: %s', item)
-        return cls(**item['Item'])
+        try:
+            user = cls(**item['Item'])
+        except KeyError:
+            user = None
+        return user
 
     def __init__(self, **kwargs):
         try:

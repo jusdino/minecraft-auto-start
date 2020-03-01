@@ -22,6 +22,8 @@ def auth_required(scope: str):
                     abort(403)
                 g.token = token
                 g.user = User.get_user_by_email(token['sub'])
+                if g.user is None:
+                    abort(401)
             except jwt.InvalidTokenError:
                 abort(401)
 

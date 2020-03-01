@@ -10,12 +10,17 @@ services:
     volumes:
       - './front/container:/usr/src/app'
     ports:
-      - '8080:5000'
+      - '8081:5000'
     environment:
       APP_NAME: 'minecraft-auto-start'
       FLASK_DEBUG: '1'
       PYTHONUNBUFFERED: '0'
       APP_SETTINGS: 'front.config.ProductionConfig'
+      DYNAMODB_AUTH_TABLE_NAME: 'mas-dev-auth_'
+      DYNAMODB_SERVERS_TABLE_NAME: 'mas-dev-servers'
+      AWS_DEFAULT_REGION: ${AWS_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
 
   launcher:
     image: 'jusdino/minecraft-auto-start-launcher:latest'

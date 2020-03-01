@@ -27,7 +27,7 @@ class ServerStatusSchema(ma.Schema):
     description = fields.Nested(DescriptionSchema(), required=True, default=DescriptionSchema().dumps({}))
     players = fields.Nested(PlayersSchema(), required=True, default=PlayersSchema().dump({}))
     version = fields.Nested(VersionSchema(), required=True, default=VersionSchema().dump({}))
-    favicon = fields.String(required=True, default='X')
+    favicon = fields.String(required=True, default='')
 
 
 class LaunchableServerSchema(ma.Schema):
