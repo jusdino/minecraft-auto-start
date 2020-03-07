@@ -32,6 +32,24 @@
       {
         "name": "AWS_DEFAULT_REGION",
         "value": "${aws_region}"
+      },
+      {
+        "name": "SERVER_DOMAIN",
+        "value": "${server_domain}"
+      },
+      {
+        "name": "LAUNCHER_TASK_ARN",
+        "value": "${launcher_task_arn}"
+      },
+      {
+        "name": "CLUSTER_ARN",
+        "value": "${cluster_arn}"
+      }
+    ],
+    "secrets": [
+      {
+        "name": "LAUNCHER_NETWORK_CONFIG",
+        "valueFrom": "${launcher_network_config_parameter}"
       }
     ],
     "portMappings": [

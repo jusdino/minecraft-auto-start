@@ -11,7 +11,7 @@ resource "aws_instance" "ecs_node" {
   instance_initiated_shutdown_behavior = "terminate"
   instance_type = "t3.micro"
   key_name = aws_key_pair.front.key_name
-  security_groups = [aws_security_group.front.id]
+  vpc_security_group_ids = [aws_security_group.front.id]
   associate_public_ip_address = true
   iam_instance_profile = aws_iam_instance_profile.ecs_node.name
   tags = merge({Name = "${local.app_key}-ecs-node"}, var.tags)

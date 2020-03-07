@@ -1,11 +1,11 @@
 import os
-from datetime import datetime, timezone
+from datetime import datetime
 
 from boto3.dynamodb.conditions import Attr
 from flask import current_app
 from mcstatus import MinecraftServer
 
-from front import dynamodb
+from front import dynamodb, ecs
 
 
 class LaunchableServer():
@@ -17,7 +17,10 @@ class LaunchableServer():
                                   ConsistentRead=False,
                                   ReturnConsumedCapacity='NONE')
         current_app.logger.debug('DynamoDB Item: %s', item)
-        return cls(**item['Item'])
+        try:
+            return cls(**item['Item'])
+        except KeyError:
+            return None
 
     @classmethod
     def get_all_servers(cls):
@@ -25,11 +28,13 @@ class LaunchableServer():
             ReturnConsumedCapacity='NONE',
             ConsistentRead=False
         )
-        current_app.logger.debug('DynamoDB Scan: %s', res)
+        # current_app.logger.debug('DynamoDB Scan: %s', res)
         return [cls(**server) for server in res['Items']]
 
     def __init__(self, **kwargs):
         self._data = dict(**kwargs)
+        if not self._data.get('hostname', False):
+            self._data['hostname'] = f"{self._data['name']}.{current_app.config['SERVER_DOMAIN']}"
 
     @property
     def name(self):
@@ -111,6 +116,24 @@ class LaunchableServer():
             self.table.put_item(Item=self._data, ConditionExpression=Attr('version').eq(version))
         else:
             self.table.put_item(Item=self._data)
+
+    def launch(self):
+        current_app.logger.info('Running task: %s on cluster %s', current_app.config['LAUNCHER_TASK_ARN'], current_app.config['CLUSTER_ARN'])
+        ecs.run_task(
+            launchType='FARGATE',
+            networkConfiguration=current_app.config['LAUNCHER_NETWORK_CONFIG'],
+            overrides={
+                'containerOverrides': [{
+                    'name': 'launcher',
+                    'environment': [{
+                        'name': 'SERVER_NAME',
+                        'value': self.name
+                    }]
+                }]
+            },
+            taskDefinition=current_app.config['LAUNCHER_TASK_ARN'],
+            cluster=current_app.config['CLUSTER_ARN']
+        )
 
     def __repr__(self):
         return f'<LaunchableServer(name={self.name}, hostname={self.hostname}>'

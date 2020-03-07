@@ -31,6 +31,25 @@ resource "aws_iam_policy" "front_execution" {
         "logs:PutLogEvents"
       ],
       "Resource": "*"
+    },
+    {
+      "Sid": "AllowGetParameters",
+      "Effect": "Allow",
+      "Action": "ssm:GetParameters",
+      "Resource": [
+        "${aws_ssm_parameter.launcher_network_config.arn}"
+      ]
+    },
+    {
+      "Sid": "AllowGetKMS",
+      "Effect": "Allow",
+      "Action": [
+        "kms:ListKeys",
+        "kms:ListAliases",
+        "kms:Describe*",
+        "kms:Decrypt"
+      ],
+      "Resource": "${aws_kms_key.main.arn}"
     }
   ]
 }
@@ -102,6 +121,27 @@ resource "aws_iam_policy" "front_task" {
       "Resource": [
         "${aws_dynamodb_table.auth.arn}",
         "${aws_dynamodb_table.servers.arn}"
+      ]
+    },
+    {
+      "Sid": "AllowRunTask",
+      "Effect": "Allow",
+      "Action": [
+        "ecs:RunTask"
+      ],
+      "Resource": [
+        "${aws_ecs_task_definition.launcher.arn}"
+      ]
+    },
+    {
+      "Sid": "AllowPassrole",
+      "Effect": "Allow",
+      "Action": [
+        "iam:PassRole"
+      ],
+      "Resource": [
+        "${aws_iam_role.launcher_execution.arn}",
+        "${aws_iam_role.launcher_task.arn}"
       ]
     }
   ]

@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import timedelta
 import uuid
@@ -9,6 +10,10 @@ class BaseConfig(object):
     """Base configuration."""
 
     APP_NAME = os.getenv("APP_NAME", "launcher")
+    SERVER_DOMAIN = os.environ['SERVER_DOMAIN']
+    LAUNCHER_TASK_ARN = os.environ['LAUNCHER_TASK_ARN']
+    LAUNCHER_NETWORK_CONFIG = json.loads(os.environ['LAUNCHER_NETWORK_CONFIG'])
+    CLUSTER_ARN = os.environ['CLUSTER_ARN']
     BCRYPT_LOG_ROUNDS = 4
     DEBUG_TB_ENABLED = False
     SECRET_KEY = os.getenv("SECRET_KEY", str(uuid.uuid4()))

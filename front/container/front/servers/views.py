@@ -12,11 +12,11 @@ api = Api(servers_blueprint)
 
 class LaunchableServerView(Resource):
     @auth_required('user')
-    def get(self, hostname: int = None):
+    def get(self, hostname: str = None):
         """
         Get server data
 
-        :param int hostname: (Optional) Server id requested
+        :param str hostname: (Optional) Server name requested
         :return: Server(s) requested
         """
         if hostname is not None:
@@ -35,11 +35,11 @@ class LaunchableServerView(Resource):
         return result
 
     @auth_required('admin')
-    def post(self, server_id: int = None):
+    def post(self, hostname: str):
         """
         Add a server
 
-        :param server_id: Not used
+        :param str hostname: Not used
         :return:
         """
         schema = LaunchableServerSchema()
@@ -53,6 +53,20 @@ class LaunchableServerView(Resource):
         except Exception:
             return {'error': 'duplicate server data'}
         return schema.dump(new_server)
+
+    @auth_required('user')
+    def put(self, hostname: str):
+        """
+        Update or perform an action on a server
+        :param str hostname: Server name to update / act on
+        :return: Server
+        """
+        server = LaunchableServer.get_server_by_hostname(hostname)
+        if server is None:
+            abort(404)
+        server.launch()
+        schema = LaunchableServerSchema()
+        return schema.dump(server)
 
 
 api.add_resource(LaunchableServerView, '/<hostname>', '/', endpoint='servers')

@@ -4,7 +4,7 @@ terraform {
 	source = "git::https://github.com/jusdino/minecraft-auto-start.git//tf?ref=terraform"
 }
 
-# Include all settings from the root terragrunt.hcl file
+# Include all settings from the root front-terragrunt.hcl file
 include {
   path = find_in_parent_folders()
 }

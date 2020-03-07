@@ -32,7 +32,7 @@ class ServerStatusSchema(ma.Schema):
 
 class LaunchableServerSchema(ma.Schema):
     name = fields.String(required=True)
-    hostname = fields.String(required=True)
+    hostname = fields.String(required=False)
     status = fields.Nested(ServerStatusSchema(), dump_only=True)
 
     @post_load

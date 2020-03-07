@@ -11,6 +11,7 @@ from flask_marshmallow import Marshmallow
 bcrypt = Bcrypt()
 toolbar = DebugToolbarExtension()
 dynamodb = boto3.resource('dynamodb')
+ecs = boto3.client('ecs')
 ma = Marshmallow()
 
 
