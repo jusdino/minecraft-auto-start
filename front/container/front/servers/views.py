@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, current_app
 from flask_restful import Resource, Api, abort
 from marshmallow import ValidationError
 
@@ -23,19 +23,18 @@ class LaunchableServerView(Resource):
             server = LaunchableServer.get_server_by_hostname(hostname)
             if server is None:
                 abort(404)
-            schema = LaunchableServerSchema()
-            result = schema.dump(server)
+            result = server.data
             server.save()
         else:
             servers = LaunchableServer.get_all_servers()
-            schema = LaunchableServerSchema(many=True)
-            result = schema.dump(servers)
             for s in servers:
                 s.save()
+            result = [server.data for server in servers]
+        # current_app.logger.debug('Sending response: %s', result)
         return result
 
     @auth_required('admin')
-    def post(self, hostname: str):
+    def post(self, hostname: str = None):
         """
         Add a server
 

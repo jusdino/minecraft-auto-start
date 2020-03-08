@@ -3,7 +3,12 @@
   <div class="card-header">
     <div class="row">
       <div class="col-1">
-        <img style="max-width: 100px" src="{{server.status.favicon}}" alt="X">
+        <div *ngIf="server.status.description.text != 'Offline' || server.launch_time; else elseBlock">
+          <img style="max-width: 100px" src="{{server.status.favicon}}" alt="X">
+        </div>
+        <ng-template #elseBlock>
+          <button type="button" (click)="mcServers.launch(server)" class="btn btn-success">Launch</button>
+        </ng-template>
       </div>
       <div class="col-7">
         <h3>{{server.name}}</h3>

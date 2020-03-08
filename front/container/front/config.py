@@ -20,6 +20,7 @@ class BaseConfig(object):
     WTF_CSRF_ENABLED = False
     TOKEN_TTL = timedelta(hours=1)
     SERVER_STATUS_TTL = timedelta(seconds=30)
+    LAUNCHER_TIMEOUT = timedelta(minutes=10)
 
 
 class DevelopmentConfig(BaseConfig):

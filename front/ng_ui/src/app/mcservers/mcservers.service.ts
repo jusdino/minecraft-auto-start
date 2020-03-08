@@ -53,6 +53,21 @@ export class MCServersService {
     ).subscribe();
   }
 
+  public launch(server: MCServer) {
+    console.log('Launching server');
+    const url: string = `${this.BASE_URL}/${server.hostname}`;
+    const headers = this.getHeaders();
+    this.http.put<MCServer>(url, null, {headers: headers}).pipe(
+      tap( server => {
+        this.getServers().subscribe();
+      }),
+      catchError(err => {
+        console.log(err);
+        return null;
+      })
+    ).subscribe();
+  }
+
   getHeaders() {
     return new HttpHeaders({
       'Content-Type': 'application/json',
