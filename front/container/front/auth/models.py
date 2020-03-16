@@ -12,7 +12,23 @@ def now():
     return datetime.now(tz=timezone.utc)
 
 
-class User():
+class TokenUser():
+    def __init__(self, token):
+        self._data = {
+            'email': token['sub'],
+            'scopes': token['scopes']
+        }
+
+    @property
+    def email(self):
+        return self._data['email']
+
+    @property
+    def scopes(self):
+        return self._data['scopes']
+
+
+class FullUser(TokenUser):
     table = dynamodb.Table(os.environ['DYNAMODB_AUTH_TABLE_NAME'])
 
     @classmethod
@@ -38,7 +54,7 @@ class User():
 
     @property
     def email(self):
-        return self._data['email']
+        return super(FullUser, self).email
 
     @email.setter
     def email(self, value):

@@ -41,7 +41,7 @@ def create_app(script_info=None):
     app.register_blueprint(servers_blueprint, url_prefix='/servers')
 
     # flask login
-    from front.auth.models import User
+    from front.auth.models import FullUser
 
     # error handlers
     @app.errorhandler(401)

@@ -4,7 +4,7 @@ from getpass import getpass
 from flask.cli import FlaskGroup
 
 from front import create_app
-from front.auth.models import User
+from front.auth.models import FullUser
 
 app = create_app()
 cli = FlaskGroup(create_app=create_app)
@@ -15,7 +15,7 @@ def create_user():
     """Creates the admin user."""
     email = input('Email: ')
     password = getpass('Password: ')
-    User(email=email, password=password, admin=False).save()
+    FullUser(email=email, password=password, admin=False).save()
 
 
 @cli.command()
@@ -23,7 +23,7 @@ def create_admin():
     """Creates the admin user."""
     email = input('Email: ')
     password = getpass('Password: ')
-    User(email=email, password=password, admin=True).save()
+    FullUser(email=email, password=password, admin=True).save()
 
 
 @cli.command()

@@ -1,6 +1,6 @@
 from marshmallow import fields, post_load
 from front import ma
-from front.auth import User
+from front.auth import FullUser
 
 
 class UserSchema(ma.Schema):
@@ -11,4 +11,4 @@ class UserSchema(ma.Schema):
 
     @post_load
     def make_server(self, data, **kwargs):
-        return User(**data)
+        return FullUser(**data)

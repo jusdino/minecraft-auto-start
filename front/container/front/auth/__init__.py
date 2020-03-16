@@ -5,7 +5,7 @@ import jwt
 from flask import request, current_app, g
 from werkzeug.exceptions import abort
 
-from front.auth.models import User
+from front.auth.models import FullUser, TokenUser
 
 
 def auth_required(scope: str):
@@ -21,7 +21,7 @@ def auth_required(scope: str):
                 if scope not in token['scopes']:
                     abort(403)
                 g.token = token
-                g.user = User.get_user_by_email(token['sub'])
+                g.user = TokenUser(token)
                 if g.user is None:
                     abort(401)
             except jwt.InvalidTokenError:
@@ -55,4 +55,4 @@ def decode_auth_token(token_string):
     auth_type, value = token_string.split(maxsplit=1)
     if auth_type.lower() == 'bearer':
         return jwt.decode(token_string.split()[1], current_app.config['SECRET_KEY'], algorithms=['HS256'], verify=True)
-    raise jwt.InvalidTokenError('Not a Bearer Token')
+    raise jwt.InvalidTokenError('Invalid Token')
