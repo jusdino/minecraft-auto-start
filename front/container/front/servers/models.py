@@ -12,37 +12,38 @@ from front import dynamodb, ecs
 class LaunchableServer():
     table = dynamodb.Table(os.environ['DYNAMODB_SERVERS_TABLE_NAME'])
 
+    def __init__(self, **kwargs):
+        self.data = dict(**kwargs)
+        if not self.data.get('hostname', False):
+            self.data['hostname'] = f"{self.data['name']}.{current_app.config['SERVER_DOMAIN']}"
+        if self.status is None or self.status_expired:
+            self.update_status()
+
     @classmethod
-    def get_server_by_hostname(cls, hostname):
+    def get_server_by_hostname(cls, hostname, consistent_read=False):
         from .schema import LaunchableServerSchema
 
         schema = LaunchableServerSchema()
         item = cls.table.get_item(Key={'hostname': hostname},
-                                  ConsistentRead=False,
+                                  ConsistentRead=consistent_read,
                                   ReturnConsumedCapacity='NONE')
         current_app.logger.debug('DynamoDB Item: %s', item)
         try:
-            return schema.load(item['Item'])
+            return cls(**schema.load(item['Item']))
         except KeyError:
             return None
 
     @classmethod
-    def get_all_servers(cls):
+    def get_all_servers(cls, consistent_read=False):
         from .schema import LaunchableServerSchema
 
         schema = LaunchableServerSchema()
         res = cls.table.scan(
             ReturnConsumedCapacity='NONE',
-            ConsistentRead=False
+            ConsistentRead=consistent_read
         )
         # current_app.logger.debug('DynamoDB Scan: %s', res)
-        return [schema.load(server) for server in res['Items']]
-
-    def __init__(self, **kwargs):
-        self.data = dict(**kwargs)
-        if not self.data.get('hostname', False):
-            self.data['hostname'] = f"{self.data['name']}.{current_app.config['SERVER_DOMAIN']}"
-        self.status
+        return [cls(**schema.load(server)) for server in res['Items']]
 
     @property
     def name(self):
@@ -62,10 +63,7 @@ class LaunchableServer():
 
     @property
     def status(self) -> dict:
-        status = self.data.get('status')
-        if status is None or self.status_expired:
-            self.update_status()
-        return status
+        return self.data.get('status')
 
     @status.setter
     def status(self, value: dict):
@@ -74,7 +72,7 @@ class LaunchableServer():
     @property
     def status_time(self):
         if self.data.get('status_time') is None:
-            self.update_status()
+            return None
         return datetime.fromtimestamp(float(self.data['status_time']))
 
     @status_time.setter
@@ -115,25 +113,41 @@ class LaunchableServer():
         self.data['version'] = value
 
     def update_status(self):
-        from .schema import ServerStatusSchema
+        from .schema import ServerStatusSchema, LaunchableServerSchema
 
         current_app.logger.info('Updating MCServer %s', str(self))
 
+        # Grab fresh data with consistent_read to DB
+        item = self.table.get_item(Key={'hostname': self.hostname},
+                                   ConsistentRead=True,
+                                   ReturnConsumedCapacity='NONE')
+        current_app.logger.debug('DynamoDB Item: %s', item)
+        server_schema = LaunchableServerSchema()
+        try:
+            self.data = server_schema.load(item['Item'])
+        except KeyError:
+            return
+        if self.status is not None and not self.status_expired:
+            return
+
         if not hasattr(self, '_server'):
             self._server = MinecraftServer.lookup(self.hostname)
-        schema = ServerStatusSchema()
+        status_schema = ServerStatusSchema()
         try:
-            status = schema.dump(self._server.status())
+            status = status_schema.dump(self._server.status())
             # current_app.logger.debug('Setting status to: %s', status)
             self.status = status
         except (ConnectionRefusedError, BrokenPipeError, OSError) as e:
-            self.status = schema.dump({})
+            self.status = status_schema.dump({})
         if self.data['status']['description']['text'] != 'Offline':
             self.launch_time = None
         self.status_time = datetime.utcnow()
+        self.save()
 
     @property
     def status_expired(self):
+        if self.status_time is None:
+            return True
         return self.status_time + current_app.config['SERVER_STATUS_TTL'] < datetime.utcnow()
 
     def save(self):
@@ -167,7 +181,6 @@ class LaunchableServer():
             cluster=current_app.config['CLUSTER_ARN']
         )
         self.launch_time = datetime.utcnow()
-        self.save()
 
     def __repr__(self):
         return f'<LaunchableServer(name={self.name}, hostname={self.hostname}>'

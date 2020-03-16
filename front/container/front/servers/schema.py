@@ -47,10 +47,6 @@ class LaunchableServerSchema(ma.Schema):
             data['status'] = schema.loads(status)
         return data
 
-    @post_load
-    def make_server(self, data, **kwargs):
-        return LaunchableServer(**data)
-
     @post_dump
     def serialize_status(self, data, **kwargs):
         schema = ServerStatusSchema()

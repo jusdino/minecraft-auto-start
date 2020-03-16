@@ -24,11 +24,8 @@ class LaunchableServerView(Resource):
             if server is None:
                 abort(404)
             result = server.data
-            server.save()
         else:
             servers = LaunchableServer.get_all_servers()
-            for s in servers:
-                s.save()
             result = [server.data for server in servers]
         # current_app.logger.debug('Sending response: %s', result)
         return result
@@ -43,14 +40,10 @@ class LaunchableServerView(Resource):
         """
         schema = LaunchableServerSchema()
         try:
-            new_server = schema.load(request.json)
+            new_server = LaunchableServer(**schema.load(request.json))
         except ValidationError as e:
             return e.messages, 400
 
-        try:
-            new_server.save()
-        except Exception:
-            return {'error': 'duplicate server data'}
         return schema.dump(new_server)
 
     @auth_required('user')
@@ -60,10 +53,11 @@ class LaunchableServerView(Resource):
         :param str hostname: Server name to update / act on
         :return: Server
         """
-        server = LaunchableServer.get_server_by_hostname(hostname)
+        server = LaunchableServer.get_server_by_hostname(hostname, consistent_read=True)
         if server is None:
             abort(404)
         server.launch()
+        server.save()
         schema = LaunchableServerSchema()
         return schema.dump(server)
 
