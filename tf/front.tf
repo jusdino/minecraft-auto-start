@@ -47,7 +47,7 @@ resource "aws_dynamodb_table" "auth" {
   }
   server_side_encryption {
     enabled = true
-    kms_key_arn = aws_kms_key.main.arn
+    kms_key_arn = data.terraform_remote_state.mas_secrets.outputs.kms_key_arn
   }
 }
 
@@ -61,6 +61,6 @@ resource "aws_dynamodb_table" "servers" {
   }
   server_side_encryption {
     enabled = true
-    kms_key_arn = aws_kms_key.main.arn
+    kms_key_arn = data.terraform_remote_state.mas_secrets.outputs.kms_key_arn
   }
 }

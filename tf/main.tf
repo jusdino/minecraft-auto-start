@@ -16,14 +16,13 @@ resource "aws_key_pair" "front" {
   public_key = var.public_key
 }
 
-resource "aws_kms_key" "main" {
-  description = local.app_key
-  deletion_window_in_days = 7
-}
-
-resource "aws_kms_alias" "main" {
-  name = "alias/${local.app_key}"
-  target_key_id = aws_kms_key.main.key_id
+data "terraform_remote_state" "mas_secrets" {
+  backend = "s3"
+  config = {
+    bucket = var.tfstate_global_bucket
+    region = var.tfstate_global_bucket_region
+    key = "${var.aws_region}/${var.environment}/public/apps/${local.app_acronym}-secrets/terraform.tfstate"
+  }
 }
 
 data "terraform_remote_state" "vpc" {
@@ -31,7 +30,7 @@ data "terraform_remote_state" "vpc" {
   config = {
     bucket = var.tfstate_global_bucket
     region = var.tfstate_global_bucket_region
-    key = "us-west-1/dev/public/vpc/terraform.tfstate"
+    key = "${var.aws_region}/${var.environment}/public/vpc/terraform.tfstate"
   }
 }
 

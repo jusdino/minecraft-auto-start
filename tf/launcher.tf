@@ -1,9 +1,9 @@
 resource "aws_ecs_task_definition" "launcher" {
   family = "launcher"
   container_definitions = templatefile("${path.module}/task-definitions/launcher.json.tpl", {
-      "known_hosts_parameter": aws_ssm_parameter.known_hosts.arn,
-      "ssh_agent_key_parameter": aws_ssm_parameter.ssh_key.arn,
-      "infra_live_clone_url_parameter": aws_ssm_parameter.clone_url.arn,
+      "known_hosts_parameter": data.terraform_remote_state.mas_secrets.outputs.known_hosts_parameter_arn,
+      "ssh_agent_key_parameter": data.terraform_remote_state.mas_secrets.outputs.ssh_key_parameter_arn,
+      "infra_live_clone_url_parameter": data.terraform_remote_state.mas_secrets.outputs.clone_url_parameter_arn,
       "log_group_name": aws_cloudwatch_log_group.launcher.name,
       "region": var.aws_region
     }
@@ -43,28 +43,4 @@ resource "aws_cloudwatch_log_group" "launcher" {
   name = "/ecs/${local.app_key}-launcher"
   retention_in_days = 7
   tags = merge({Name = "launcher"}, var.tags)
-}
-
-resource "aws_ssm_parameter" "known_hosts" {
-  name = "/${local.app_key}/known-hosts"
-  type = "SecureString"
-  key_id = aws_kms_key.main.key_id
-  value = var.known_hosts
-  overwrite = true
-}
-
-resource "aws_ssm_parameter" "clone_url" {
-  name = "/${local.app_key}/clone_url"
-  type = "SecureString"
-  key_id = aws_kms_key.main.key_id
-  value = var.infra_live_clone_url
-  overwrite = true
-}
-
-resource "aws_ssm_parameter" "ssh_key" {
-  name = "/${local.app_key}/sh-key"
-  type = "SecureString"
-  key_id = aws_kms_key.main.key_id
-  value = "NotInTfState"
-  overwrite = true
 }

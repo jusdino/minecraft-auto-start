@@ -49,7 +49,7 @@ resource "aws_iam_policy" "front_execution" {
         "kms:Describe*",
         "kms:Decrypt"
       ],
-      "Resource": "${aws_kms_key.main.arn}"
+      "Resource": "${data.terraform_remote_state.mas_secrets.outputs.kms_key_arn}"
     }
   ]
 }
@@ -95,7 +95,7 @@ resource "aws_iam_policy" "front_task" {
         "kms:Describe*",
         "kms:Decrypt"
       ],
-      "Resource": "${aws_kms_key.main.arn}"
+      "Resource": "${data.terraform_remote_state.mas_secrets.outputs.kms_key_arn}"
     },
     {
       "Sid": "AllowDBReadWrite",

@@ -40,7 +40,7 @@ resource "aws_iam_policy" "launcher_execution" {
         "kms:Describe*",
         "kms:Decrypt"
       ],
-      "Resource": "${aws_kms_key.main.arn}"
+      "Resource": "${data.terraform_remote_state.mas_secrets.outputs.kms_key_arn}"
     },
     {
       "Sid": "AllowLogging",
