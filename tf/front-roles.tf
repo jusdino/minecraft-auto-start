@@ -37,7 +37,9 @@ resource "aws_iam_policy" "front_execution" {
       "Effect": "Allow",
       "Action": "ssm:GetParameters",
       "Resource": [
-        "${aws_ssm_parameter.launcher_network_config.arn}"
+        "${aws_ssm_parameter.launcher_network_config.arn}",
+        "${data.terraform_remote_state.mas_secrets.outputs.ssl_key_parameter_arn}",
+        "${data.terraform_remote_state.mas_secrets.outputs.ssl_cert_parameter_arn}"
       ]
     },
     {

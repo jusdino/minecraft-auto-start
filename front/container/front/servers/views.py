@@ -41,6 +41,7 @@ class LaunchableServerView(Resource):
         schema = LaunchableServerSchema()
         try:
             new_server = LaunchableServer(**schema.load(request.json))
+            new_server.save()
         except ValidationError as e:
             return e.messages, 400
 

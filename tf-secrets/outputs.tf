@@ -15,7 +15,15 @@ output "clone_url_parameter_name" {
 }
 
 output "ssh_key_parameter_name" {
-  value = aws_ssm_parameter.clone_url.name
+  value = aws_ssm_parameter.ssh_key.name
+}
+
+output "ssl_key_parameter_name" {
+  value = aws_ssm_parameter.ssl_key.name
+}
+
+output "ssl_cert_parameter_name" {
+  value = aws_ssm_parameter.ssl_cert.name
 }
 
 output "known_hosts_parameter_arn" {
@@ -27,5 +35,13 @@ output "clone_url_parameter_arn" {
 }
 
 output "ssh_key_parameter_arn" {
-  value = aws_ssm_parameter.clone_url.arn
+  value = aws_ssm_parameter.ssh_key.arn
+}
+
+output "ssl_key_parameter_arn" {
+  value = aws_ssm_parameter.ssl_key.arn
+}
+
+output "ssl_cert_parameter_arn" {
+  value = aws_ssm_parameter.ssl_cert.arn
 }

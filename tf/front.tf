@@ -6,6 +6,8 @@ resource "aws_ecs_task_definition" "front" {
       "server_domain": data.terraform_remote_state.dns.outputs.hosted_zone_domain,
       "launcher_task_arn": aws_ecs_task_definition.launcher.arn,
       "launcher_network_config_parameter": aws_ssm_parameter.launcher_network_config.arn,
+      "ssl_cert_parameter": data.terraform_remote_state.mas_secrets.outputs.ssl_cert_parameter_arn,
+      "ssl_key_parameter": data.terraform_remote_state.mas_secrets.outputs.ssl_key_parameter_arn
       "cluster_arn": aws_ecs_cluster.front.arn,
       "aws_region": var.aws_region
     }

@@ -27,7 +27,7 @@ class LaunchableServer():
         item = cls.table.get_item(Key={'hostname': hostname},
                                   ConsistentRead=consistent_read,
                                   ReturnConsumedCapacity='NONE')
-        current_app.logger.debug('DynamoDB Item: %s', item)
+        # current_app.logger.debug('DynamoDB Item: %s', item)
         try:
             return cls(**schema.load(item['Item']))
         except KeyError:
@@ -121,7 +121,7 @@ class LaunchableServer():
         item = self.table.get_item(Key={'hostname': self.hostname},
                                    ConsistentRead=True,
                                    ReturnConsumedCapacity='NONE')
-        current_app.logger.debug('DynamoDB Item: %s', item)
+        # current_app.logger.debug('DynamoDB Item: %s', item)
         server_schema = LaunchableServerSchema()
         try:
             self.data = server_schema.load(item['Item'])
@@ -139,7 +139,7 @@ class LaunchableServer():
             self.status = status
         except (ConnectionRefusedError, BrokenPipeError, OSError) as e:
             self.status = status_schema.dump({})
-        if self.data['status']['description']['text'] != 'Offline':
+        if self.data['status']['description']['text'] != 'Offline' or not self.launching:
             self.launch_time = None
         self.status_time = datetime.utcnow()
         self.save()
@@ -157,6 +157,7 @@ class LaunchableServer():
         version = self.version
         self.version = version + 1
         data = schema.dump(self.data)
+        current_app.logger.info('Updating DB for %s', self.hostname)
         if version > 0:
             # Optimistic lock via condition - let fail if concurrent updates
             self.table.put_item(Item=data, ConditionExpression=Attr('version').eq(version))

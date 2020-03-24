@@ -50,12 +50,20 @@
       {
         "name": "LAUNCHER_NETWORK_CONFIG",
         "valueFrom": "${launcher_network_config_parameter}"
+      },
+      {
+        "name": "SSL_CERT",
+        "valueFrom": "${ssl_cert_parameter}"
+      },
+      {
+        "name": "SSL_KEY",
+        "valueFrom": "${ssl_key_parameter}"
       }
     ],
     "portMappings": [
       {
         "containerPort": 5000,
-        "hostPort": 80
+        "hostPort": 443
       }
     ]
   }

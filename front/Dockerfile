@@ -1,10 +1,5 @@
 FROM python:3.8.0-slim
 
-# install netcat
-RUN apt-get update \
-  && apt-get -y install netcat \
-  && apt-get clean
-
 # set working directory
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
@@ -23,4 +18,4 @@ COPY container /usr/src/app
 
 # run server
 ENTRYPOINT ["./entrypoint.sh"]
-CMD ["run", "-h", "0.0.0.0"]
+CMD ["-b", "0.0.0.0:5000"]
