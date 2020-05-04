@@ -1,7 +1,7 @@
 [
   {
     "name": "launcher",
-    "image": "jusdino/minecraft-auto-start-launcher:latest",
+    "image": "jusdino/minecraft-auto-start-launcher:${environment}",
     "essential": true,
     "secrets": [
       {
@@ -15,6 +15,16 @@
       {
         "name": "SSH_AGENT_KEY",
         "valueFrom": "${ssh_agent_key_parameter}"
+      }
+    ],
+    "environment": [
+      {
+        "name": "INFRA_LIVE_PATH",
+        "value": "${infra_live_path}"
+      },
+      {
+        "name": "ENVIRONMENT",
+        "value": "${environment}"
       }
     ],
     "logConfiguration": {

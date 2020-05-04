@@ -1,15 +1,18 @@
 resource "aws_ecs_cluster" "front" {
-  name = "front"
-  tags = merge({Name = "front"}, var.tags)
+  name = local.app_key
+  tags = merge({Name = local.app_key}, var.tags)
 }
 
 resource "aws_instance" "ecs_node" {
   count = var.front_instance_count
   ami = data.aws_ami.ecs.id
+  lifecycle {
+    create_before_destroy = true
+  }
   // Fan out across subnets (AZs)
   subnet_id = data.terraform_remote_state.vpc.outputs.subnet_ids[count.index % length(data.terraform_remote_state.vpc.outputs.subnet_ids)]
   instance_initiated_shutdown_behavior = "terminate"
-  instance_type = "t3.micro"
+  instance_type = "t3.nano"
   key_name = aws_key_pair.front.key_name
   vpc_security_group_ids = [aws_security_group.front.id]
   associate_public_ip_address = true
@@ -35,7 +38,7 @@ data "aws_ami" "ecs" {
 }
 
 resource "aws_security_group" "front" {
-  name = "${local.app_key}-${aws_ecs_cluster.front.name}"
+  name = aws_ecs_cluster.front.name
   description = aws_ecs_cluster.front.name
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
@@ -65,7 +68,7 @@ resource "aws_security_group" "front" {
 
 resource "aws_iam_role" "ecs_node" {
   path = "/${local.app_key}/"
-  name = "ecs-node"
+  name = "${local.app_key}-ecs-node"
   assume_role_policy = <<POLICY
 {
   "Version": "2012-10-17",

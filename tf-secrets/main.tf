@@ -1,11 +1,3 @@
-provider "aws" {
-  region = var.aws_region
-}
-
-terraform {
-  backend "s3" {}
-}
-
 locals {
   app_acronym = "mas"
   app_key = "${local.app_acronym}-${var.environment}"

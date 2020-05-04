@@ -1,6 +1,6 @@
 resource "aws_ecs_task_definition" "front" {
-  family = "front"
-  container_definitions = templatefile("${path.module}/task-definitions/front.json.tpl", {
+  family = "${local.app_key}-front"
+  container_definitions = templatefile("${path.module}/task-definitions/front.json", {
       "auth_table_name": aws_dynamodb_table.auth.name,
       "servers_table_name": aws_dynamodb_table.servers.name,
       "server_domain": data.terraform_remote_state.dns.outputs.hosted_zone_domain,
@@ -14,11 +14,11 @@ resource "aws_ecs_task_definition" "front" {
   )
   execution_role_arn = aws_iam_role.front_execution.arn
   task_role_arn = aws_iam_role.front_task.arn
-  tags = merge({Name = "front"}, var.tags)
+  tags = merge({Name = "${local.app_key}-front"}, var.tags)
 }
 
 resource "aws_ecs_service" "front" {
-  name = "front"
+  name = "${local.app_key}-front"
   cluster = aws_ecs_cluster.front.id
   task_definition = aws_ecs_task_definition.front.arn
   desired_count = var.front_instance_count
@@ -40,7 +40,7 @@ resource "aws_ssm_parameter" "launcher_network_config" {
 }
 
 resource "aws_dynamodb_table" "auth" {
-  name = "${local.app_key}-auth_"
+  name = "${local.app_key}-auth"
   billing_mode = "PAY_PER_REQUEST"
   hash_key = "email"
   attribute {

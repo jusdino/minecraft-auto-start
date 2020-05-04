@@ -4,9 +4,9 @@ RUN apt-get update && \
     apt-get install -y openssh-client git zip && \
     rm -rf /var/lib/apt/lists/*
 
-ADD https://releases.hashicorp.com/terraform/0.12.14/terraform_0.12.14_linux_amd64.zip /usr/local/bin/terraform.zip
+ADD https://releases.hashicorp.com/terraform/0.12.24/terraform_0.12.24_linux_amd64.zip /usr/local/bin/terraform.zip
 RUN cd /usr/local/bin && unzip terraform.zip && rm terraform.zip
-ADD https://github.com/gruntwork-io/terragrunt/releases/download/v0.21.6/terragrunt_linux_amd64 /usr/local/bin/terragrunt
+ADD https://github.com/gruntwork-io/terragrunt/releases/download/v0.23.13/terragrunt_linux_amd64 /usr/local/bin/terragrunt
 RUN chmod +x /usr/local/bin/terra*
 
 COPY config /root/.ssh/config
