@@ -1,0 +1,29 @@
+<h2>Minecraft Servers</h2>
+<div *ngFor="let server of mcServers.servers$ | async" class="card bg-light border-dark mb-3">
+  <div class="card-header">
+    <div class="row">
+      <div class="col-1">
+        <div *ngIf="server.status.description.text != 'Offline' || server.launch_time; else elseBlock">
+          <img style="max-width: 100px" src="{{server.status.favicon}}" alt="X">
+        </div>
+        <ng-template #elseBlock>
+          <button type="button" (click)="mcServers.launch(server)" class="btn btn-success">Launch</button>
+        </ng-template>
+      </div>
+      <div class="col-7">
+        <h3>{{server.name}}</h3>
+      </div>
+      <div class="col-4">
+        <p>{{server.hostname}}</p>
+      </div>
+    </div>
+  </div>
+  <div class="card-body">
+    <p *ngIf="server.status.description.text != ''">{{server.status.description.text}}</p>
+    <div *ngIf="server.status.description.text != 'Offline'">
+      <div *ngFor="let ex of server.status.description.extra">{{ex.text}}</div>
+      <p class="font-italic">{{server.status.players.online}} of {{server.status.players.max}} players online</p>
+    </div>
+  </div>
+</div>
+<app-mcserver-add *ngIf="auth.authContext.user.admin"></app-mcserver-add>

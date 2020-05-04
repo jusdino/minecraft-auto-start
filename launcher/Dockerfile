@@ -1,26 +1,17 @@
 FROM python:3.6.5-slim
 
-# install netcat
-RUN apt-get update \
-  && apt-get -y install netcat \
-  && apt-get clean
+RUN apt-get update && \
+    apt-get install -y openssh-client git zip && \
+    rm -rf /var/lib/apt/lists/*
 
-# set working directory
-RUN mkdir -p /usr/src/app
-WORKDIR /usr/src/app
+ADD https://releases.hashicorp.com/terraform/0.12.24/terraform_0.12.24_linux_amd64.zip /usr/local/bin/terraform.zip
+RUN cd /usr/local/bin && unzip terraform.zip && rm terraform.zip
+ADD https://github.com/gruntwork-io/terragrunt/releases/download/v0.23.13/terragrunt_linux_amd64 /usr/local/bin/terragrunt
+RUN chmod +x /usr/local/bin/terra*
 
-# add requirements
-COPY container/requirements.txt /usr/src/app/requirements.txt
+COPY config /root/.ssh/config
 
-# install requirements
-RUN pip install -r requirements.txt
+COPY container /app
+WORKDIR /app
 
-# add entrypoint.sh
-COPY container/entrypoint.sh /usr/src/app/entrypoint.sh
-
-# add app
-COPY container /usr/src/app
-
-# run server
-ENTRYPOINT ["./entrypoint.sh"]
-CMD ["run -h 0.0.0.0"]
+ENTRYPOINT ["/bin/bash", "./entrypoint.sh"]

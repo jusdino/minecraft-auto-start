@@ -2,32 +2,42 @@ version: '3.5'
 
 services:
 
-  launcher:
-    image: launcher
+  front:
+    image: 'jusdino/minecraft-auto-start-front:latest'
     build:
-      context: launcher
-      dockerfile: Dockerfile
+      context: 'front'
+      dockerfile: 'Dockerfile'
     volumes:
-      - './launcher/container:/usr/src/app'
+      - './front/container:/usr/src/app'
     ports:
-      - 8080:5000
+      - '8081:5000'
     environment:
-      - APP_NAME=launcher
-      - FLASK_DEBUG=1
-      - PYTHONUNBUFFERED=0
-      - APP_SETTINGS=launcher.config.ProductionConfig
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/users_dev
-      - DATABASE_TEST_URL=postgres://postgres:postgres@db:5432/users_test
-    depends_on:
-      - db
+      APP_NAME: 'minecraft-auto-start'
+      FLASK_DEBUG: '1'
+      PYTHONUNBUFFERED: '0'
+      APP_SETTINGS: 'front.config.ProductionConfig'
+      SERVER_DOMAIN: ${SERVER_DOMAIN}
+      LAUNCHER_TASK_ARN: ${LAUNCHER_TASK_ARN}
+      LAUNCHER_NETWORK_CONFIG: ${LAUNCHER_NETWORK_CONFIG}
+      CLUSTER_ARN: ${CLUSTER_ARN}
+      DYNAMODB_AUTH_TABLE_NAME: 'mas-dev-auth_'
+      DYNAMODB_SERVERS_TABLE_NAME: 'mas-dev-servers'
+      AWS_DEFAULT_REGION: ${AWS_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      SECRET_KEY: ${SECRET_KEY}
+      SSL_CERT: ${SSL_CERT}
+      SSL_KEY: ${SSL_KEY}
 
-  db:
-    container_name: db
+  launcher:
+    image: 'jusdino/minecraft-auto-start-launcher:latest'
     build:
-      context: db
-      dockerfile: Dockerfile
-    ports:
-      - 5435:5432
+      context: 'launcher'
+      dockerfile: 'Dockerfile'
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      SSH_AGENT_KEY: ${SSH_AGENT_KEY}
+      KNOWN_HOSTS: ${KNOWN_HOSTS}
+      INFRA_LIVE_CLONE_URL: ${INFRA_LIVE_CLONE_URL}
+      TARGET_SERVER_PATH: ${TARGET_SERVER_PATH}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}

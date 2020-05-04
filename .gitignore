@@ -3,4 +3,9 @@ venv/*
 *.iml
 .idea/*
 .env
+certs/*
+*.pem
+*.pem.pub
+.terraform
+.python-version
 package-lock.json
