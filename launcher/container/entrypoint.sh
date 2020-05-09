@@ -10,6 +10,8 @@ TARGET_SERVER_PATH="infra-live/${INFRA_LIVE_PATH}/${SERVER_NAME}"
 echo "Cloning '$INFRA_LIVE_CLONE_URL'"
 git clone -q "$INFRA_LIVE_CLONE_URL" infra-live
 if [ ! -f "${TARGET_SERVER_PATH}/terraform.hcl" ]; then
+  echo "Configuration file not found at ${TARGET_SERVER_PATH}/terraform.hcl"
+  echo "Generating from template..."
   mkdir -p "${TARGET_SERVER_PATH}"
   sed "s/__SERVER_NAME__/${SERVER_NAME}/g" "infra-live/templates/${ENVIRONMENT}/minecraft/terragrunt.hcl" >"$TARGET_SERVER_PATH/terragrunt.hcl"
 fi
