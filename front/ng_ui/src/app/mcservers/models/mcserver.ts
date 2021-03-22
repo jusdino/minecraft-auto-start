@@ -10,4 +10,3 @@ export class MCServer {
     public version?: number
   ) {}
 }
-

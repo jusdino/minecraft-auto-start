@@ -2,6 +2,7 @@
 venv/*
 *.iml
 .idea/*
+.vscode/*
 .env
 certs/*
 *.pem
@@ -9,3 +10,5 @@ certs/*
 .terraform
 .python-version
 package-lock.json
+cdk.context.json
+*/ui-static/*
