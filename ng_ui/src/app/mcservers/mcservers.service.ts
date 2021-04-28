@@ -13,7 +13,7 @@ export class MCServersService {
   public servers: MCServer[];
   public newServer: MCServer = new MCServer();
   public servers$: Observable<MCServer[]>;
-  private BASE_URL: string = '/servers';
+  private BASE_URL: string = '../api/servers';
 
   constructor(
     private http: HttpClient,
@@ -71,7 +71,7 @@ export class MCServersService {
   getHeaders() {
     return new HttpHeaders({
       'Content-Type': 'application/json',
-      'Authentication': `Bearer ${this.auth.authContext.token}`
+      'Authentication': `Bearer ${this.auth.authContext.session.getAccessToken().getJwtToken()}`
     });
 
   }

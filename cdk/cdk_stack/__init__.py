@@ -10,6 +10,7 @@ from aws_cdk.aws_lambda_python import PythonFunction
 from .api import Api
 from .servers import ServersApi
 from .ui import ServersUi
+from .auth import CognitoStack
 
 
 class CdkStack(cdk.Stack):
@@ -19,3 +20,4 @@ class CdkStack(cdk.Stack):
         rest_api = Api(self, 'Api').rest_api
         ServersApi(self, 'Servers', context, resource=rest_api.root)
         ServersUi(self, 'UI', rest_api=rest_api.root)
+        CognitoStack(self, 'Users')

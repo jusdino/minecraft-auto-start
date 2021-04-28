@@ -1,5 +1,8 @@
 {
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "cli": {
+    "analytics": "d5180a7f-f56e-4177-8fec-fcbde4625e83"
+  },
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
@@ -13,7 +16,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "../../cdk/ui-static",
+            "outputPath": "../cdk/ui-static",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -63,7 +66,9 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "mc-servers:build"
+            "browserTarget": "mc-servers:build",
+            "baseHref": "/prod/ui/",
+            "deployUrl": "/prod/ui/"
           },
           "configurations": {
             "production": {
