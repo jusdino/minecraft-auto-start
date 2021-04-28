@@ -16,6 +16,9 @@ export class LoginComponent {
 	onLogin() {
 		console.log('onLogin()');
 		this.auth.login().subscribe(success => {
+			if (success === true) {
+				this.auth.authContext.check_authenticated();
+			}
 			console.log('login component recieved login success=' + success);
 		})
 	}
@@ -23,6 +26,9 @@ export class LoginComponent {
 	onNewPassword() {
 		console.log('onNewPassword()');
 		this.auth.newPassword().subscribe(success => {
+			if (success === true) {
+				this.auth.authContext.check_authenticated();
+			}
 			console.log('login component recieved new password success=' + success);
 		})
 	}
