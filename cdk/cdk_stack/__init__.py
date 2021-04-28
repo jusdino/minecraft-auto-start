@@ -18,6 +18,6 @@ class CdkStack(cdk.Stack):
     def __init__(self, scope: cdk.Construct, construct_id: str, context: dict, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
         rest_api = Api(self, 'Api').rest_api
-        ServersApi(self, 'Servers', context, resource=rest_api.root)
+        cognito_stack = CognitoStack(self, 'Users')
+        ServersApi(self, 'Servers', context, resource=rest_api.root, user_pool=cognito_stack.user_pool)
         ServersUi(self, 'UI', rest_api=rest_api.root)
-        CognitoStack(self, 'Users')

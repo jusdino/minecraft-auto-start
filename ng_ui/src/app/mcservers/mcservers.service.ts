@@ -71,8 +71,7 @@ export class MCServersService {
   getHeaders() {
     return new HttpHeaders({
       'Content-Type': 'application/json',
-      'Authentication': `Bearer ${this.auth.authContext.session.getAccessToken().getJwtToken()}`
+      'Authorization': `Bearer ${this.auth.authContext.session.getIdToken().getJwtToken()}`
     });
-
   }
 }

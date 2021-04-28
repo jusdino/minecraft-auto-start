@@ -3,7 +3,6 @@ import { timer, of, Observable, BehaviorSubject } from 'rxjs';
 import { concatMap } from 'rxjs/operators';
 
 export class AuthContext {
-  accessToken: CognitoAccessToken;
   session: CognitoUserSession;
   user: CognitoUser;
   timer$: Observable<boolean>;
@@ -23,10 +22,10 @@ export class AuthContext {
     console.log('Checking authentication');
     console.log(this.session);
     if (this.session != null) {
-      console.log(this.session.getAccessToken().getExpiration());
+      console.log(this.session.getIdToken().getExpiration());
       console.log(Date.now());
     }
-    let isAuthenticated = this.session != null && this.session.getAccessToken().getExpiration() > Date.now()/1000;
+    let isAuthenticated = this.session != null && this.session.getIdToken().getExpiration() > Date.now()/1000;
     console.log('Authenticated: ' + isAuthenticated);
     this.authenticated.next(isAuthenticated);
     return isAuthenticated;

@@ -3,14 +3,15 @@ from aws_cdk import (
     aws_kms as kms,
     aws_dynamodb as db,
     aws_lambda as _lambda,
-    aws_apigateway as apigw
+    aws_apigateway as apigw,
+    aws_cognito as cognito
 )
 from aws_cdk.aws_lambda_python import PythonFunction
 
 
 class ServersApi(cdk.Construct):
 
-    def __init__(self, scope: cdk.Construct, construct_id: str, context, resource: apigw.Resource, **kwargs) -> None:
+    def __init__(self, scope: cdk.Construct, construct_id: str, context, resource: apigw.Resource, user_pool: cognito.UserPool, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
         servers_table = db.Table.from_table_name(self, 'servers-dynamo', context['servers_table_name'])
         servers_key = kms.Key.from_key_arn(
@@ -45,8 +46,13 @@ class ServersApi(cdk.Construct):
         servers_table.grant_read_write_data(server_lambda)
         servers_key.grant_encrypt_decrypt(server_lambda)
 
+        user_pool_authorizer = apigw.CognitoUserPoolsAuthorizer(
+            self, 'UserPoolAuthorizer',
+            cognito_user_pools = [user_pool]
+        )
+
         # /api
-        api = resource.add_resource('api')
+        api = resource.add_resource('api', default_method_options=apigw.MethodOptions(authorizer=user_pool_authorizer))
     
         # /api/servers
         servers = api.add_resource('servers', default_integration=apigw.LambdaIntegration(servers_lambda))

@@ -1,7 +1,6 @@
-import { Injectable, OnInit } from '@angular/core';
-import { Observable, of, interval, Observer, BehaviorSubject } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { Observable, Observer, BehaviorSubject } from 'rxjs';
 import { AuthContext } from './models/auth-context';
-import { catchError, map, tap } from 'rxjs/operators';
 import { CognitoUserPool, AuthenticationDetails, CognitoUser } from 'amazon-cognito-identity-js';
 
 @Injectable({
@@ -28,13 +27,13 @@ export class AuthService {
 	constructor() {}
 
 	login(): Observable<boolean> {
-		let authService = this;
-		let userData = {
+		const authService = this;
+		const userData = {
 			Username: this.loginCredentials.Username,
 			Pool: this.userPool
 		};
-		let authDetails = new AuthenticationDetails(this.loginCredentials);
-		let cognitoUser = new CognitoUser(userData);
+		const authDetails = new AuthenticationDetails(this.loginCredentials);
+		const cognitoUser = new CognitoUser(userData);
 		return new Observable((observer: Observer<boolean>) => {
 			cognitoUser.authenticateUser(authDetails, {
 				onSuccess: function(result) {
@@ -61,7 +60,7 @@ export class AuthService {
 	}
 	
 	public newPassword(): Observable<boolean> {
-		let auth = this;
+		const auth = this;
 		return new Observable((observer: Observer<boolean>) => {
 			this.authContext.user.completeNewPasswordChallenge(this.newPasswordCredentials.Password1, {}, {
 				onSuccess: function(result) {
@@ -76,17 +75,5 @@ export class AuthService {
 				}
 			});
 		});
-	}
-
-	private handleError<T> (operation = 'operation', result?: T) {
-		return (error: any): Observable<T> => {
-			console.error(error);
-			this.log(`${operation} failed: ${error.message}`);
-			return of(result as T);
-		}
-	}
-
-	private log(message: string) {
-		this.log(`AuthService: ${message}`);
 	}
 }
