@@ -1,5 +1,5 @@
-<h1>Login</h1>
-<div *ngIf="auth.loginChallenge=='login'; else elseBlock">
+<div *ngIf="(auth.loginChallenge$ | async) =='login'; else elseBlock">
+  <h1>Login</h1>
   <form (ngSubmit)="onLogin()" novalidate>
     <div class="form-group">
       <label for="username">Username</label>
@@ -12,4 +12,17 @@
     <button type="submit" class="btn btn-default">Submit</button>
   </form>
 </div>
-<ng-template #elseBlock><newpassword></newpassword></ng-template>
+<ng-template #elseBlock>
+  <h1>New Password Required</h1>
+  <form (ngSubmit)="onNewPassword()" novalidate>
+    <div class="form-group">
+      <label for="password1">New Password</label>
+      <input type="password" class="form-control" id="password1" placeholder="enter new password" [(ngModel)]="auth.newPasswordCredentials.Password1" name="password1" required>
+    </div>
+    <div class="form-group">
+      <label for="password2">Confirm New Password</label>
+      <input type="password" class="form-control" id="password2" placeholder="confirm new password" [(ngModel)]="auth.newPasswordCredentials.Password2" name="password2" required>
+    </div>
+    <button type="submit" class="btn btn-default">Submit</button>
+  </form>
+</ng-template>

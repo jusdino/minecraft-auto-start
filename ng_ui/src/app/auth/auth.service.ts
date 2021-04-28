@@ -1,5 +1,5 @@
 import { Injectable, OnInit } from '@angular/core';
-import { Observable, of, interval, Observer } from 'rxjs';
+import { Observable, of, interval, Observer, BehaviorSubject } from 'rxjs';
 import { AuthContext } from './models/auth-context';
 import { catchError, map, tap } from 'rxjs/operators';
 import { CognitoUserPool, AuthenticationDetails, CognitoUser } from 'amazon-cognito-identity-js';
@@ -13,7 +13,8 @@ export class AuthService {
 		Password: ''
 	};
 	public authContext: AuthContext = new AuthContext();
-	public loginChallenge: string = 'login';
+	public loginChallenge: BehaviorSubject<string> = new BehaviorSubject('login');
+	public loginChallenge$: Observable<string> = this.loginChallenge.asObservable();
 	public newPasswordCredentials: any = {
 		'Password1': '',
 		'Password2': ''
@@ -53,22 +54,27 @@ export class AuthService {
 					authService.challengeData = {
 						userAttributes: userAttributes
 					}
-					authService.loginChallenge = 'newpassword';
+					authService.loginChallenge.next('newpassword');
 				}
 			});
 		});
 	}
 	
-	public newPassword() {
-		this.authContext.user.completeNewPasswordChallenge('<N3w password>', this.challengeData['userAttributes'], {
-			onSuccess: function(result) {
-				console.log(this);
-				this.authContext.session = result;
-				this.log('password changed');
-			},
-			onFailure: function (err) {
-				console.log(err);
-			}
+	public newPassword(): Observable<boolean> {
+		let auth = this;
+		return new Observable((observer: Observer<boolean>) => {
+			this.authContext.user.completeNewPasswordChallenge(this.newPasswordCredentials.Password1, {}, {
+				onSuccess: function(result) {
+					console.log(this);
+					auth.authContext.session = result;
+					console.log('password changed');
+					observer.next(true);
+				},
+				onFailure: function (err) {
+					console.log(err);
+					observer.next(false);
+				}
+			});
 		});
 	}
 
