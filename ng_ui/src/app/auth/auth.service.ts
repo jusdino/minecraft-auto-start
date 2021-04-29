@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
-import { Observable, Observer, BehaviorSubject } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable, Observer, BehaviorSubject, of } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
 import { AuthContext } from './models/auth-context';
-import { CognitoUserPool, AuthenticationDetails, CognitoUser } from 'amazon-cognito-identity-js';
+import { ICognitoUserPoolData, CognitoUserPool, AuthenticationDetails, CognitoUser } from 'amazon-cognito-identity-js';
 
 @Injectable({
 	providedIn: 'root'
@@ -19,12 +21,23 @@ export class AuthService {
 		'Password2': ''
 	}
 	public challengeData: any;
-	private userPool: CognitoUserPool = new CognitoUserPool({
-		UserPoolId: "us-west-1_XXXXXXXXX",
-		ClientId: "XXXXXXXXXXXXXXXXXXXXXXXXXX"
-	});
+	private userPool: CognitoUserPool;
 
-	constructor() {}
+	constructor(
+		private http: HttpClient
+	) {
+		console.log('AuthService contstructor');
+		this.http.get<ICognitoUserPoolData>('../api/user_pool').pipe(
+			tap(pool_data => {
+				console.log('Received user_pool data: ' + pool_data);
+				this.userPool = new CognitoUserPool(pool_data);
+			}),
+			catchError(err => {
+				console.log(err);
+				return of(null);
+			})
+		).subscribe();
+	}
 
 	login(): Observable<boolean> {
 		const authService = this;
