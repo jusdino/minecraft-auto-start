@@ -34,9 +34,12 @@ class ServersUi(cdk.Construct):
         self._add_item_integration(ui_resource, asset_bucket, s3_integration_role)
     
     def _add_get_integration(self, rest_api: apigw.Resource, asset_bucket, s3_integration_role) -> apigw.Resource:
+        """
+        Add integration for /ui/
+        """
         s3_integration = apigw.AwsIntegration(
             service='s3',
-            path=asset_bucket.bucket_name,
+            path=f'{asset_bucket.bucket_name}/index.html',
             integration_http_method='GET',
             options=apigw.IntegrationOptions(
                 credentials_role=s3_integration_role,
@@ -49,8 +52,22 @@ class ServersUi(cdk.Construct):
                             'method.response.header.Timestamp': 'integration.response.header.Date'
                         }
                     ),
-                    apigw.IntegrationResponse(status_code='400', selection_pattern=r'4\d{2}'),
-                    apigw.IntegrationResponse(status_code='500', selection_pattern=r'5\d{2}')
+                    apigw.IntegrationResponse(
+                        status_code='400',
+                        selection_pattern=r'4\d{2}',
+                        response_parameters={
+                            'method.response.header.Content-Type': 'integration.response.header.Content-Type',
+                            'method.response.header.Content-Length': 'integration.response.header.Content-Length'
+                        }
+                    ),
+                    apigw.IntegrationResponse(
+                        status_code='500',
+                        selection_pattern=r'5\d{2}',
+                        response_parameters={
+                            'method.response.header.Content-Type': 'integration.response.header.Content-Type',
+                            'method.response.header.Content-Length': 'integration.response.header.Content-Length'
+                        }
+                    )
                 ]
             )
         )
@@ -64,13 +81,26 @@ class ServersUi(cdk.Construct):
                         'method.response.header.Timestamp': True
                     }
                 ),
-                apigw.MethodResponse(status_code='400'),
-                apigw.MethodResponse(status_code='500'),
+                apigw.MethodResponse(status_code='400',
+                    response_parameters={
+                        'method.response.header.Content-Type': True,
+                        'method.response.header.Content-Length': True
+                    }
+                ),
+                apigw.MethodResponse(status_code='500',
+                    response_parameters={
+                        'method.response.header.Content-Type': True,
+                        'method.response.header.Content-Length': True
+                    }
+                )
             ]
         )
         return ui
 
     def _add_item_integration(self, ui_resource: apigw.Resource, asset_bucket, s3_integration_role) -> apigw.Resource:
+        """
+        Add integration for /ui/{object}
+        """
         s3_integration = apigw.AwsIntegration(
             service='s3',
             path=f'{asset_bucket.bucket_name}/{{object}}',
@@ -119,17 +149,20 @@ class ServersUi(cdk.Construct):
                         'method.response.header.Content-Type': True,
                         'method.response.header.Content-Length': True,
                         'method.response.header.Timestamp': True
-                    }),
+                    }
+                ),
                 apigw.MethodResponse(status_code='400',
                     response_parameters={
                         'method.response.header.Content-Type': True,
                         'method.response.header.Content-Length': True
-                    }),
+                    }
+                ),
                 apigw.MethodResponse(status_code='500',
                     response_parameters={
                         'method.response.header.Content-Type': True,
                         'method.response.header.Content-Length': True
-                    }),
+                    }
+                )
             ],
             request_parameters={
                 'method.request.path.item': True
