@@ -6,7 +6,7 @@ from aws_cdk import (
 )
 
 
-class CognitoStack(cdk.Construct):
+class Users(cdk.Construct):
 
     def __init__(self, scope: cdk.Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)

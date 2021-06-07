@@ -10,7 +10,8 @@ from aws_cdk.aws_lambda_python import PythonFunction
 from .api import Api
 from .servers import ServersApi
 from .ui import ServersUi
-from .auth import CognitoStack
+from .users import Users
+from .launcher import Launcher
 
 
 class CdkStack(cdk.Stack):
@@ -18,13 +19,19 @@ class CdkStack(cdk.Stack):
     def __init__(self, scope: cdk.Construct, construct_id: str, context: dict, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
         rest_api = Api(self, 'Api').rest_api
-        cognito_stack = CognitoStack(self, 'Users')
+        users = Users(self, 'Users')
+        launcher = Launcher(
+            self, 'Launcher'
+        )
         ServersApi(
             self, 'Servers',
             context,
             resource=rest_api.root,
-            user_pool=cognito_stack.user_pool,
-            user_client=cognito_stack.user_client,
-            user_pool_parameter=cognito_stack.user_pool_parameter
+            user_pool=users.user_pool,
+            user_client=users.user_client,
+            user_pool_parameter=users.user_pool_parameter,
+            launcher_network_config_parameter=launcher.network_config_parameter,
+            launcher_cluster=launcher.cluster,
+            launcher_task_definition=launcher.task_definition
         )
         ServersUi(self, 'UI', rest_api=rest_api.root)

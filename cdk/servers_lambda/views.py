@@ -1,15 +1,10 @@
 import json
-import logging
 
 from marshmallow import ValidationError
 
+from config import logger
 from models import LaunchableServer
 from schema import LaunchableServerSchema
-
-
-logging.basicConfig()
-logger = logging.getLogger()
-logger.level = logging.DEBUG
 
 
 def servers(event, context):
@@ -61,9 +56,14 @@ class Servers():
             new_server = LaunchableServer(**schema.load(json.loads(event['body'])))
             new_server.save()
         except ValidationError as e:
-            return e.messages, 400
-
-        return schema.dump(new_server)
+            return {
+                'statusCode': 400,
+                'body': json.dumps(e.messages)
+            }
+        return {
+            'statusCode': 200,
+            'body': schema.dumps(new_server)
+        }
 
     @staticmethod
     def put(event, hostname: str = None):
@@ -75,4 +75,7 @@ class Servers():
             return {'statusCode': 404}
         server.launch()
         schema = LaunchableServerSchema()
-        return schema.dump(server)
+        return {
+            'statusCode': 200,
+            'body': schema.dumps(server)
+        }

@@ -1,4 +1,5 @@
 aws-cdk.core>=1.96
+aws-cdk.aws-ecs>=1.96
 aws-cdk.aws-lambda>=1.96
 aws-cdk.aws-lambda-python>=1.96
 aws-cdk.aws-apigateway>=1.96

@@ -1,14 +1,12 @@
 import os
-import logging
 from datetime import datetime
 
 import boto3
 from boto3.dynamodb.conditions import Attr
 from mcstatus import MinecraftServer
 
-from config import config
+from config import config, logger
 
-logger = logging.getLogger()
 dynamodb = boto3.resource('dynamodb')
 ecs = boto3.client('ecs')
 
