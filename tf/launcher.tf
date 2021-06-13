@@ -1,4 +1,9 @@
-resource "aws_ecs_task_definition" "launcher" {
+resource aws_ecs_cluster front {
+  name = local.app_key
+  tags = merge({Name = local.app_key}, var.tags)
+}
+
+resource aws_ecs_task_definition launcher {
   family = "${local.app_key}-launcher"
   container_definitions = templatefile("${path.module}/task-definitions/launcher.json", {
       "known_hosts_parameter": data.terraform_remote_state.mas_secrets.outputs.known_hosts_parameter_arn,
@@ -19,7 +24,7 @@ resource "aws_ecs_task_definition" "launcher" {
   tags = merge({Name = "launcher"}, var.tags)
 }
 
-resource "aws_security_group" "launcher" {
+resource aws_security_group launcher {
   name = "${local.app_key}-launcher"
   description = "${local.app_key}-launcher"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
@@ -41,7 +46,7 @@ resource "aws_security_group" "launcher" {
   tags = merge({Name = "launcher"}, var.tags)
 }
 
-resource "aws_cloudwatch_log_group" "launcher" {
+resource aws_cloudwatch_log_group launcher {
   name = "/ecs/${local.app_key}-launcher"
   retention_in_days = 7
   tags = merge({Name = "launcher"}, var.tags)

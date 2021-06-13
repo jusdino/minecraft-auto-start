@@ -1,4 +1,4 @@
-resource "aws_iam_role" "launcher_execution" {
+resource aws_iam_role launcher_execution {
   path = "/${local.app_key}/"
   name = "launcher-execution"
   assume_role_policy = <<POLICY
@@ -17,7 +17,7 @@ resource "aws_iam_role" "launcher_execution" {
 POLICY
 }
 
-resource "aws_iam_policy" "launcher_execution" {
+resource aws_iam_policy launcher_execution {
   name = "${local.app_key}-launcher-execution"
   policy = <<POLICY
 {
@@ -56,12 +56,12 @@ resource "aws_iam_policy" "launcher_execution" {
 POLICY
 }
 
-resource "aws_iam_role_policy_attachment" "launcher_execution" {
+resource aws_iam_role_policy_attachment launcher_execution {
   role = aws_iam_role.launcher_execution.name
   policy_arn = aws_iam_policy.launcher_execution.arn
 }
 
-resource "aws_iam_role" "launcher_task" {
+resource aws_iam_role launcher_task {
   path = "/${local.app_key}/"
   name = "launcher-task"
   assume_role_policy = <<POLICY
@@ -81,7 +81,7 @@ POLICY
 }
 
 // Lock this down if you are not insane
-resource "aws_iam_policy" "launcher_task" {
+resource aws_iam_policy launcher_task {
   name = "${local.app_key}-launcher-task"
   policy = <<POLICY
 {
@@ -98,7 +98,7 @@ resource "aws_iam_policy" "launcher_task" {
 POLICY
 }
 
-resource "aws_iam_role_policy_attachment" "launcher_task" {
+resource aws_iam_role_policy_attachment launcher_task {
   role = aws_iam_role.launcher_task.name
   policy_arn = aws_iam_policy.launcher_task.arn
 }
