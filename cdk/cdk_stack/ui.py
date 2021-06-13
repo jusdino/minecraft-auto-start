@@ -9,6 +9,9 @@ from aws_cdk.aws_lambda_python import PythonFunction
 
 
 class ServersUi(cdk.Construct):
+    """
+    Add a /ui/ endpoint to the provided Resource that serves static content from an s3 bucket
+    """
 
     def __init__(self, scope: cdk.Construct, construct_id: str, rest_api: apigw.Resource, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -30,8 +33,8 @@ class ServersUi(cdk.Construct):
             assumed_by=iam.ServicePrincipal(service='apigateway.amazonaws.com')
         )
         asset_bucket.grant_read(s3_integration_role)
-        ui_resource = self._add_get_integration(rest_api, asset_bucket, s3_integration_role)
-        self._add_item_integration(ui_resource, asset_bucket, s3_integration_role)
+        self.ui_resource = self._add_get_integration(rest_api, asset_bucket, s3_integration_role)
+        self._add_item_integration(self.ui_resource, asset_bucket, s3_integration_role)
     
     def _add_get_integration(self, rest_api: apigw.Resource, asset_bucket, s3_integration_role) -> apigw.Resource:
         """

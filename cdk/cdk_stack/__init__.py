@@ -19,7 +19,11 @@ class CdkStack(cdk.Stack):
     def __init__(self, scope: cdk.Construct, construct_id: str, context: dict, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
         rest_api = Api(self, 'Api').rest_api
-        users = Users(self, 'Users')
+        ServersUi(self, 'UI', rest_api=rest_api.root)
+        users = Users(
+            self, 'Users',
+            domain_name=rest_api.domain_name.domain_name
+        )
         launcher = Launcher(
             self, 'Launcher'
         )
@@ -34,4 +38,3 @@ class CdkStack(cdk.Stack):
             launcher_cluster=launcher.cluster,
             launcher_task_definition=launcher.task_definition
         )
-        ServersUi(self, 'UI', rest_api=rest_api.root)
