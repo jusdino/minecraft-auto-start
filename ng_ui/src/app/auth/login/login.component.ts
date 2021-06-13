@@ -8,9 +8,10 @@ import { AuthService } from '../auth.service';
 	styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
+
 	constructor(
 		private router: Router, 
-		public auth: AuthService
+		public auth: AuthService,
 	) {}
 
 	onLogin() {
@@ -19,7 +20,7 @@ export class LoginComponent {
 			if (success === true) {
 				this.auth.authContext.check_authenticated();
 			}
-			console.log('login component recieved login success=' + success);
+			console.log('login component recieved login success: ' + success);
 		})
 	}
 
@@ -29,7 +30,7 @@ export class LoginComponent {
 			if (success === true) {
 				this.auth.authContext.check_authenticated();
 			}
-			console.log('login component recieved new password success=' + success);
+			console.log('login component recieved new password success: ' + success);
 		})
 	}
 }

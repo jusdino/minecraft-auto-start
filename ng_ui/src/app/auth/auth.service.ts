@@ -4,6 +4,7 @@ import { Observable, Observer, BehaviorSubject, of } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { AuthContext } from './models/auth-context';
 import { ICognitoUserPoolData, CognitoUserPool, AuthenticationDetails, CognitoUser } from 'amazon-cognito-identity-js';
+import { NotifierService } from 'angular-notifier';
 
 @Injectable({
 	providedIn: 'root'
@@ -22,11 +23,13 @@ export class AuthService {
 	}
 	public challengeData: any;
 	private userPool: CognitoUserPool;
+    private readonly notifier: NotifierService
 
 	constructor(
-		private http: HttpClient
+		private http: HttpClient,
+		notifierService: NotifierService
 	) {
-		console.log('AuthService contstructor');
+		this.notifier = notifierService;
 		this.http.get<ICognitoUserPoolData>('../api/user_pool').pipe(
 			tap(pool_data => {
 				console.log('Received user_pool data: ' + pool_data);
@@ -40,6 +43,7 @@ export class AuthService {
 	}
 
 	login(): Observable<boolean> {
+		let notifier = this.notifier;
 		const authService = this;
 		const userData = {
 			Username: this.loginCredentials.Username,
@@ -58,7 +62,7 @@ export class AuthService {
 				},
 				onFailure: function (err) {
 					console.log(err.message);
-					console.log(err.message);
+					notifier.notify('warning', err.message);
 					observer.next(false);
 				},
 				newPasswordRequired: function(userAttributes, requiredAttributes) {
@@ -66,6 +70,7 @@ export class AuthService {
 					authService.challengeData = {
 						userAttributes: userAttributes
 					}
+					notifier.notify('info', 'Time to change your password!');
 					authService.loginChallenge.next('newpassword');
 				}
 			});
@@ -73,6 +78,7 @@ export class AuthService {
 	}
 	
 	public newPassword(): Observable<boolean> {
+		const notifier = this.notifier;
 		const auth = this;
 		return new Observable((observer: Observer<boolean>) => {
 			this.authContext.user.completeNewPasswordChallenge(this.newPasswordCredentials.Password1, {}, {
@@ -80,10 +86,12 @@ export class AuthService {
 					console.log(this);
 					auth.authContext.session = result;
 					console.log('password changed');
+					notifier.notify('success', 'Password changed!');
 					observer.next(true);
 				},
 				onFailure: function (err) {
 					console.log(err);
+					notifier.notify('warning', err.message);
 					observer.next(false);
 				}
 			});

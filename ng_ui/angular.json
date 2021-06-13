@@ -67,8 +67,8 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
             "browserTarget": "mc-servers:build",
-            "baseHref": "/prod/ui/",
-            "deployUrl": "/prod/ui/"
+            "baseHref": "/ui/",
+            "deployUrl": "/ui/"
           },
           "configurations": {
             "production": {

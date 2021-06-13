@@ -1,10 +1,8 @@
 {
-  "/prod/ui/auth/*": {
-    "target": "http://localhost:8081",
-    "secure": false
-  },
-  "/prod/ui/servers/*": {
-    "target": "http://localhost:8081",
-    "secure": false
+  "/api/*": {
+    "target": "https://localhost:8081",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
   }
 }

@@ -17,6 +17,7 @@
     "@angular/router": "^11.2.8",
     "@ng-bootstrap/ng-bootstrap": "^9.1.0",
     "amazon-cognito-identity-js": "^4.6.0",
+    "angular-notifier": "^9.0.1",
     "rxjs": "^6.6.7"
   },
   "devDependencies": {
