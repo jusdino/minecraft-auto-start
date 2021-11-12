@@ -191,6 +191,7 @@ class LaunchableServer(BasicServer):
             cluster=config['CLUSTER_ARN']
         )
         self.launch_time = datetime.utcnow()
+        self.save()
 
     def __repr__(self):
         return f'<LaunchableServer(name={self.name}, hostname={self.hostname}>'

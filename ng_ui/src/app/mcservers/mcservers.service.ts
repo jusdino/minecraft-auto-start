@@ -110,6 +110,7 @@ export class MCServersService {
 		console.log('Launching server');
 		const url: string = `${BASE_URL}/${server.hostname}`;
 		const headers = this.getHeaders();
+		server.launch_time = Date.now() / 1000;
 		this.http.put<MCServer>(url, null, {headers: headers}).pipe(
 			tap( server => {
 				this.getServers().subscribe();
