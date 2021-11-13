@@ -38,18 +38,11 @@ class Api(cdk.Construct):
             domain_name=apigw.DomainNameOptions(
                 certificate=certificate,
                 domain_name=self.domain_name
+            ),
+            deploy_options=apigw.StageOptions(
+                stage_name=environment
             )
         )
-        # apigw.BasePathMapping(
-        #     self, 'StartBPM',
-        #     domain_name=apigw.DomainName(
-        #         self, 'StartDN',
-        #         mapping=self.rest_api,
-        #         certificate=,
-        #         domain_name=domain_name
-        #     ),
-        #     rest_api=self.rest_api
-        # )
         arecord = r53.ARecord(
             self, 'StartARecord',
             zone=hosted_zone,

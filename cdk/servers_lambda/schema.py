@@ -1,5 +1,4 @@
-from marshmallow import fields, post_load, pre_load, post_dump, Schema
-from models import LaunchableServer
+from marshmallow import fields, post_load, pre_load, post_dump, Schema, EXCLUDE
 
 
 class DescrExtraSchema(Schema):
@@ -29,9 +28,15 @@ class ServerStatusSchema(Schema):
     favicon = fields.String(missing=None, default=None, allow_none=True)
 
 
-class LaunchableServerSchema(Schema):
+class BasicServerSchema(Schema):
+    class Meta:
+        unknown = EXCLUDE
+
     name = fields.String(required=True)
     hostname = fields.String(required=False)
+
+
+class LaunchableServerSchema(BasicServerSchema):
     status = fields.Nested(ServerStatusSchema())
     status_time = fields.String(required=False)
     launch_time = fields.String(required=False, allow_none=True)

@@ -1,5 +1,6 @@
-import os
+from schema import BasicServerSchema, LaunchableServerSchema
 from datetime import datetime
+import typing
 
 import boto3
 from boto3.dynamodb.conditions import Attr
@@ -7,29 +8,26 @@ from mcstatus import MinecraftServer
 
 from config import config, logger
 
+
 dynamodb = boto3.resource('dynamodb')
 ecs = boto3.client('ecs')
 
 
-class LaunchableServer():
+class BasicServer():
     table = dynamodb.Table(config['DYNAMODB_SERVERS_TABLE_NAME'])
+    schema = BasicServerSchema
 
     def __init__(self, **kwargs):
         self.data = dict(**kwargs)
         if not self.data.get('hostname', False):
             self.data['hostname'] = f"{self.data['name']}.{config['SERVER_DOMAIN']}"
-        if self.status is None or self.status_expired:
-            self.update_status()
 
     @classmethod
     def get_server_by_hostname(cls, hostname, consistent_read=False):
-
-        from schema import LaunchableServerSchema
-        schema = LaunchableServerSchema()
+        schema = cls.schema()
         item = cls.table.get_item(Key={'hostname': hostname},
                                   ConsistentRead=consistent_read,
                                   ReturnConsumedCapacity='NONE')
-        # logger.debug('DynamoDB Item: %s', item)
         try:
             return cls(**schema.load(item['Item']))
         except KeyError:
@@ -37,15 +35,12 @@ class LaunchableServer():
 
     @classmethod
     def get_all_servers(cls, consistent_read=False):
-        from schema import LaunchableServerSchema
-
-        schema = LaunchableServerSchema()
+        schema = cls.schema()
         res = cls.table.scan(
             ReturnConsumedCapacity='NONE',
             ConsistentRead=consistent_read
         )
-        # logger.debug('DynamoDB Scan: %s', res)
-        return [cls(**schema.load(server)) for server in res['Items']]
+        return [cls(**schema.load(server)) for server in res.get('Items', [])]
 
     @property
     def name(self):
@@ -62,6 +57,18 @@ class LaunchableServer():
     @hostname.setter
     def hostname(self, value):
         self.data['hostname'] = value
+
+    def __repr__(self):
+        return f'<BasicServer(name={self.name}, hostname={self.hostname}>'
+
+
+class LaunchableServer(BasicServer):
+    schema = LaunchableServerSchema
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if self.status is None or self.status_expired:
+            self.update_status()
 
     @property
     def status(self) -> dict:
@@ -82,7 +89,7 @@ class LaunchableServer():
         self.data['status_time'] = str(value.timestamp())
 
     @property
-    def launch_time(self) -> (datetime, None):
+    def launch_time(self) -> typing.Union[datetime, None]:
         launch_time = self.data.get('launch_time')
         if launch_time is None:
             return None
@@ -102,17 +109,6 @@ class LaunchableServer():
         if self.launch_time is None:
             return False
         return self.launch_time + config['LAUNCHER_TIMEOUT'] > datetime.utcnow()
-
-    @property
-    def version(self) -> int:
-        try:
-            return self.data['version']
-        except KeyError as e:
-            raise AttributeError from e
-
-    @version.setter
-    def version(self, value: int):
-        self.data['version'] = value
 
     def update_status(self):
         from schema import ServerStatusSchema, LaunchableServerSchema
@@ -152,6 +148,17 @@ class LaunchableServer():
             return True
         return self.status_time + config['SERVER_STATUS_TTL'] < datetime.utcnow()
 
+    @property
+    def version(self) -> int:
+        try:
+            return self.data['version']
+        except KeyError as e:
+            raise AttributeError from e
+
+    @version.setter
+    def version(self, value: int):
+        self.data['version'] = value
+
     def save(self):
         from schema import LaunchableServerSchema
 
@@ -184,6 +191,7 @@ class LaunchableServer():
             cluster=config['CLUSTER_ARN']
         )
         self.launch_time = datetime.utcnow()
+        self.save()
 
     def __repr__(self):
         return f'<LaunchableServer(name={self.name}, hostname={self.hostname}>'

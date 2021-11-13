@@ -2,10 +2,12 @@ import json
 
 from marshmallow import ValidationError
 
-from config import logger
-from models import LaunchableServer
+from config import logger, config
+from models import BasicServer, LaunchableServer
 from schema import LaunchableServerSchema
 
+
+config.pull_configs()
 
 def servers(event, context):
     logger.debug('Received event: %s', json.dumps(event))
@@ -39,7 +41,7 @@ class Servers():
                 return {'statusCode': 404, 'body': ''}
             result = server.data
         else:
-            servers = LaunchableServer.get_all_servers()
+            servers = BasicServer.get_all_servers()
             result = [server.data for server in servers]
         return {
             'statusCode': 200,
