@@ -1,11 +1,13 @@
-from schema import BasicServerSchema, LaunchableServerSchema
 from datetime import datetime
+from random import randint
+from time import sleep
 import typing
 
 import boto3
 from boto3.dynamodb.conditions import Attr
 from mcstatus import MinecraftServer
 
+from schema import BasicServerSchema, LaunchableServerSchema
 from config import config, logger
 
 
@@ -24,10 +26,12 @@ class BasicServer():
 
     @classmethod
     def get_server_by_hostname(cls, hostname, consistent_read=False):
+        logger.info('Fetching record for %s', hostname)
         schema = cls.schema()
         item = cls.table.get_item(Key={'hostname': hostname},
                                   ConsistentRead=consistent_read,
                                   ReturnConsumedCapacity='NONE')
+        logger.debug('Record: %s', item)
         try:
             return cls(**schema.load(item['Item']))
         except KeyError:
@@ -35,6 +39,7 @@ class BasicServer():
 
     @classmethod
     def get_all_servers(cls, consistent_read=False):
+        logger.info('Fetching all server records')
         schema = cls.schema()
         res = cls.table.scan(
             ReturnConsumedCapacity='NONE',
@@ -67,6 +72,7 @@ class LaunchableServer(BasicServer):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.schema = self.schema()
         if self.status is None or self.status_expired:
             self.update_status()
 
@@ -119,7 +125,7 @@ class LaunchableServer(BasicServer):
         item = self.table.get_item(Key={'hostname': self.hostname},
                                    ConsistentRead=True,
                                    ReturnConsumedCapacity='NONE')
-        # logger.debug('DynamoDB Item: %s', item)
+        logger.debug('DynamoDB Item: %s', item)
         server_schema = LaunchableServerSchema()
         try:
             self.data = server_schema.load(item['Item'])
@@ -133,14 +139,13 @@ class LaunchableServer(BasicServer):
         status_schema = ServerStatusSchema()
         try:
             status = status_schema.dump(self._server.status())
-            # logger.debug('Setting status to: %s', status)
             self.status = status
         except (ConnectionRefusedError, BrokenPipeError, OSError):
             self.status = status_schema.dump({})
         if self.data['status']['description']['text'] != 'Offline' or not self.launching:
             self.launch_time = None
         self.status_time = datetime.utcnow()
-        self.save()
+        self.save(safe=False)
 
     @property
     def status_expired(self):
@@ -159,15 +164,13 @@ class LaunchableServer(BasicServer):
     def version(self, value: int):
         self.data['version'] = value
 
-    def save(self):
-        from schema import LaunchableServerSchema
-
-        schema = LaunchableServerSchema()
+    def save(self, safe: bool = True):
+        logger.info('Saving record for %s, safe=%s', str(self), str(safe))
         version = self.version
         self.version = version + 1
-        data = schema.dump(self.data)
+        data = self.schema.dump(self.data)
         logger.info('Updating DB for %s', self.hostname)
-        if version > 0:
+        if version > 0 and safe:
             # Optimistic lock via condition - let fail if concurrent updates
             self.table.put_item(Item=data, ConditionExpression=Attr('version').eq(version))
         else:
@@ -190,8 +193,18 @@ class LaunchableServer(BasicServer):
             taskDefinition=config['LAUNCHER_TASK_ARN'],
             cluster=config['CLUSTER_ARN']
         )
-        self.launch_time = datetime.utcnow()
-        self.save()
+        for i in range(3):
+            try:
+                self.launch_time = datetime.utcnow()
+                self.save(safe=True)
+                break
+            except dynamodb.meta.client.exceptions.ConditionalCheckFailedException:
+                logger.info('Concurrent write prevented on attempt %s', i)
+                sleep(randint(0, 2**i))
+                item = self.table.get_item(Key={'hostname': self.hostname},
+                                           ConsistentRead=True,
+                                           ReturnConsumedCapacity='NONE')
+                self.data.update(**self.schema.load(item['Item']))
 
     def __repr__(self):
         return f'<LaunchableServer(name={self.name}, hostname={self.hostname}>'
