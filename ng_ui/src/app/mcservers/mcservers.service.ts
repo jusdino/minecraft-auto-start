@@ -41,8 +41,12 @@ export class MCServersService {
 						const prev_server = this.servers.get(server.hostname);
 						if (prev_server) {
 							server.hostname = prev_server.hostname;
-							server.launch_time = prev_server.launch_time;
-							server.launch_pct = prev_server.launch_pct;
+							if (prev_server.launch_time) {
+								server.launch_time = prev_server.launch_time;
+								server.launch_pct = prev_server.launch_pct;
+							} else {
+								server.launch_pct = null;
+							}
 							server.name = prev_server.name;
 							server.status = prev_server.status;
 							server.status_time = prev_server.status_time;
@@ -62,6 +66,8 @@ export class MCServersService {
 								server.launch_time = +detailedServer.launch_time;
 								// Percent of a 10 minute timeout elapsed since launch_time
 								server.launch_pct = (Date.now()/1000 - server.launch_time)/6;
+							} else {
+								server.launch_pct = null;
 							}
 							server.name = detailedServer.name;
 							server.status = detailedServer.status;
@@ -115,7 +121,7 @@ export class MCServersService {
 		console.log('Launching server');
 		const url: string = `${BASE_URL}/${server.hostname}`;
 		const headers = this.getHeaders();
-		server.launch_pct = 0;
+		server.launch_pct = 0.1;
 		this.http.put<MCServer>(url, null, {headers: headers}).pipe(
 			tap( server => {
 				this.getServers().subscribe();
