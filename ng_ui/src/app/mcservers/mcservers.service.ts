@@ -22,10 +22,7 @@ export class MCServersService {
 		private auth: AuthService
 	) {
 		this.servers$ = timer(0, 5000).pipe(
-			concatMap( _ => {
-				console.log('timer concatMap');
-				return this.getServers()
-			})
+			concatMap( _ => this.getServers())
 		);
 	}
 
@@ -45,6 +42,7 @@ export class MCServersService {
 						if (prev_server) {
 							server.hostname = prev_server.hostname;
 							server.launch_time = prev_server.launch_time;
+							server.launch_pct = prev_server.launch_pct;
 							server.name = prev_server.name;
 							server.status = prev_server.status;
 							server.status_time = prev_server.status_time;
@@ -59,10 +57,17 @@ export class MCServersService {
  					this.getServerDetails(server).pipe(
 						tap(detailedServer => {
 							server.hostname = detailedServer.hostname;
-							server.launch_time = detailedServer.launch_time;
+							// Cast to number
+							if (detailedServer.launch_time) {
+								server.launch_time = +detailedServer.launch_time;
+								// Percent of a 10 minute timeout elapsed since launch_time
+								server.launch_pct = (Date.now()/1000 - server.launch_time)/6;
+							}
 							server.name = detailedServer.name;
 							server.status = detailedServer.status;
-							server.status_time = detailedServer.status_time;
+							if (detailedServer.status_time) {
+								server.status_time = +detailedServer.status_time;
+							}
 							server.version = detailedServer.version;
 						})
 					).subscribe();
@@ -110,7 +115,7 @@ export class MCServersService {
 		console.log('Launching server');
 		const url: string = `${BASE_URL}/${server.hostname}`;
 		const headers = this.getHeaders();
-		server.launch_time = Date.now() / 1000;
+		server.launch_pct = 0;
 		this.http.put<MCServer>(url, null, {headers: headers}).pipe(
 			tap( server => {
 				this.getServers().subscribe();
