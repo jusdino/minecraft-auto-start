@@ -75,7 +75,8 @@ class Servers():
         server = LaunchableServer.get_server_by_hostname(hostname, consistent_read=True)
         if server is None:
             return {'statusCode': 404}
-        server.launch()
+        if not server.launching:
+            server.launch()
         schema = LaunchableServerSchema()
         return {
             'statusCode': 200,
