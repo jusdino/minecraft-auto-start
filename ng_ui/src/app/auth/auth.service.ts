@@ -32,7 +32,7 @@ export class AuthService {
 		this.notifier = notifierService;
 		this.http.get<ICognitoUserPoolData>('../api/user_pool').pipe(
 			tap(pool_data => {
-				console.log('Received user_pool data: ' + pool_data);
+				console.log('Received user_pool data');
 				this.userPool = new CognitoUserPool(pool_data);
 			}),
 			catchError(err => {
@@ -54,7 +54,6 @@ export class AuthService {
 		return new Observable((observer: Observer<boolean>) => {
 			cognitoUser.authenticateUser(authDetails, {
 				onSuccess: function(result) {
-					console.log(this);
 					authService.authContext.user = cognitoUser;
 					authService.authContext.session = result;
 					console.log("Login successful");

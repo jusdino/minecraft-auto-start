@@ -20,13 +20,7 @@ export class AuthContext {
 
   public check_authenticated() {
     console.log('Checking authentication');
-    console.log(this.session);
-    if (this.session != null) {
-      console.log(this.session.getIdToken().getExpiration());
-      console.log(Date.now());
-    }
     let isAuthenticated = this.session != null && this.session.getIdToken().getExpiration() > Date.now()/1000;
-    console.log('Authenticated: ' + isAuthenticated);
     this.authenticated.next(isAuthenticated);
     return isAuthenticated;
   }

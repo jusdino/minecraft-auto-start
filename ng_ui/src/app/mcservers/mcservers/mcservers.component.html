@@ -1,35 +1,30 @@
 <h2>Minecraft Servers</h2>
 <div *ngFor="let server of mcServers.servers$ | async" class="card bg-light border-dark mb-3">
-  <div class="card-header">
-    <div class="row">
-      <div class="col-1">
-        <div *ngIf="server.status && server.status.description.text != 'Offline'; else notOnlineBlock">
-          <img style="max-width: 100px" src="{{server.status.favicon}}" alt="X">
-        </div>
-        <ng-template #notOnlineBlock>
-          <mat-progress-spinner *ngIf="server.launch_pct; else notLaunchingBlock" mode="determinate" diameter="30" [value]="server.launch_pct"></mat-progress-spinner>
-          <ng-template #notLaunchingBlock>
-            <button *ngIf="server.status; else loadingBlock" type="button" (click)="mcServers.launch(server)" class="btn btn-success">Launch</button>
-            <ng-template #loadingBlock>
-              <mat-spinner diameter="30"></mat-spinner>
-            </ng-template>
-          </ng-template>
-        </ng-template>
+  <mat-card>
+    <mat-card-subtitle>{{server.hostname}}</mat-card-subtitle>
+    <mat-card-title>{{server.name}}</mat-card-title>
+    <mat-card-content>
+      <div *ngIf="server.status && server.status.description.text != 'Offline'; else offlineBlock">
+        <img style="max-width: 100px" src="{{server.status.favicon}}" alt="X">
+        <p>{{server.status.version.name}}</p>
+        <p *ngIf="server.status.description.text != ''">{{server.status.description.text}}</p>
+        <div *ngFor="let ex of server.status.description.extra">{{ex.text}}</div>
+        <p class="font-italic">{{server.status.players.online}} of {{server.status.players.max}} players online</p>
       </div>
-      <div class="col-7">
-        <h3>{{server.name}}</h3>
-      </div>
-      <div class="col-4">
-        <p>{{server.hostname}}</p>
-      </div>
-    </div>
-  </div>
-  <div *ngIf="server.status" class="card-body">
-    <p *ngIf="server.status.description.text != ''">{{server.status.description.text}}</p>
-    <div *ngIf="server.status.description.text != 'Offline'">
-      <div *ngFor="let ex of server.status.description.extra">{{ex.text}}</div>
-      <p class="font-italic">{{server.status.players.online}} of {{server.status.players.max}} players online</p>
-    </div>
-  </div>
+      <ng-template #offlineBlock>
+        <p>Offline</p>
+      </ng-template>
+    </mat-card-content>
+    <mat-divider inset></mat-divider>
+    <mat-card-actions *ngIf="server.status && server.status.description.text == 'Offline' && !server.launch_pct">
+      <button type="button" (click)="mcServers.launch(server)" class="btn btn-success">Launch</button>
+    </mat-card-actions>
+    <mat-card-footer>
+      <mat-progress-bar *ngIf="server.launch_pct; else loadingBlock" mode="determinate" [value]="server.launch_pct"></mat-progress-bar>
+      <ng-template #loadingBlock>
+        <mat-progress-bar *ngIf="!server.status" mode="indeterminate"></mat-progress-bar>
+      </ng-template>
+    </mat-card-footer>
+  </mat-card>
 </div>
 <!-- <app-mcserver-add *ngIf="auth.authContext.user.admin"></app-mcserver-add> -->

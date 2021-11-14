@@ -1,7 +1,9 @@
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatCardModule } from '@angular/material/card';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import { MCServersComponent } from './mcservers/mcservers.component';
 import { MCServerAddComponent } from './mcserver-add/mcserver-add.component';
@@ -16,7 +18,9 @@ import { MCServerAddComponent } from './mcserver-add/mcserver-add.component';
   imports: [
     CommonModule,
     FormsModule,
-    MatProgressSpinnerModule
+    MatCardModule,
+    MatProgressBarModule,
+    MatDividerModule
   ]
 })
 export class MCServersModule { }
