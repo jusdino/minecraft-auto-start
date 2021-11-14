@@ -15,7 +15,6 @@ export class LoginComponent {
 	) {}
 
 	onLogin() {
-		console.log('onLogin()');
 		this.auth.login().subscribe(success => {
 			if (success === true) {
 				this.auth.authContext.check_authenticated();
