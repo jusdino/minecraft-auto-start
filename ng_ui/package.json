@@ -24,7 +24,6 @@
     "@angular/platform-browser": "^12.2.13",
     "@angular/platform-browser-dynamic": "^12.2.13",
     "@angular/router": "^12.2.13",
-    "@ng-bootstrap/ng-bootstrap": "^10.0.0",
     "amazon-cognito-identity-js": "^4.6.0",
     "angular-notifier": "^9.0.1",
     "rxjs": "^6.6.7",
