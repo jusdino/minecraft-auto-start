@@ -5,8 +5,8 @@
     <mat-card-title>{{server.name}}</mat-card-title>
     <mat-card-content>
       <div *ngIf="server.status && server.status.description.text != 'Offline'; else offlineBlock">
-        <img style="max-width: 100px" src="{{server.status.favicon}}" alt="X">
         <p>{{server.status.version.name}}</p>
+        <img style="max-width: 100px" src="{{server.status.favicon}}" alt="X">
         <p *ngIf="server.status.description.text != ''">{{server.status.description.text}}</p>
         <div *ngFor="let ex of server.status.description.extra">{{ex.text}}</div>
         <p class="font-italic">{{server.status.players.online}} of {{server.status.players.max}} players online</p>
