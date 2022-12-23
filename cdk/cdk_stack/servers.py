@@ -1,39 +1,37 @@
-from aws_cdk import (
-    core as cdk,
-    aws_iam as iam,
-    aws_kms as kms,
-    aws_dynamodb as db,
-    aws_lambda as _lambda,
-    aws_apigateway as apigw,
-    aws_cognito as cognito,
-    aws_ssm as ssm,
-    aws_ecs as ecs
-)
-from aws_cdk.aws_lambda_python import PythonFunction
+from constructs import Construct
+from aws_cdk import Duration
+from aws_cdk.aws_kms import Key
+from aws_cdk.aws_cognito import UserPool, UserPoolClient
+from aws_cdk.aws_dynamodb import Table
+from aws_cdk.aws_lambda import Runtime
+from aws_cdk.aws_ssm import StringParameter
+from aws_cdk.aws_ecs import Cluster, ITaskDefinition
+from aws_cdk.aws_lambda_python_alpha import PythonFunction
+from aws_cdk.aws_apigateway import Resource, LambdaIntegration, MethodOptions, AuthorizationType, CognitoUserPoolsAuthorizer
 
 from .launcher import GrantingTaskDefinition
 
 
-class ServersApi(cdk.Construct):
+class ServersApi(Construct):
 
     def __init__(
-            self, scope: cdk.Construct,
+            self, scope: Construct,
             construct_id: str,
             context,
-            resource: apigw.Resource,
-            user_pool: cognito.UserPool,
-            user_client: cognito.UserPoolClient,
-            user_pool_parameter: ssm.StringParameter,
-            launcher_network_config_parameter: ssm.StringParameter,
+            resource: Resource,
+            user_pool: UserPool,
+            user_client: UserPoolClient,
+            user_pool_parameter: StringParameter,
+            launcher_network_config_parameter: StringParameter,
             launcher_task_definition: GrantingTaskDefinition,
-            launcher_cluster: ecs.Cluster,
+            launcher_cluster: Cluster,
             **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         server_domain = self.node.try_get_context('server_domain')
 
-        servers_table = db.Table.from_table_name(self, 'servers-dynamo', context['servers_table_name'])
-        servers_key = kms.Key.from_key_arn(
+        servers_table = Table.from_table_name(self, 'servers-dynamo', context['servers_table_name'])
+        servers_key = Key.from_key_arn(
             self, 'ServersKey',
             f'arn:aws:kms:{context["region"]}:{context["account_id"]}:key/{context["kms_key_id"]}'
         )
@@ -45,8 +43,8 @@ class ServersApi(cdk.Construct):
                     entry='servers_lambda',
                     index='views.py',
                     handler=handler,
-                    runtime=_lambda.Runtime.PYTHON_3_8,
-                    timeout=cdk.Duration.seconds(30),
+                    runtime=Runtime.PYTHON_3_8,
+                    timeout=Duration.seconds(30),
                     environment={
                         'SERVER_DOMAIN': server_domain,
                         'DYNAMODB_SERVERS_TABLE_NAME': servers_table.table_name,
@@ -69,15 +67,15 @@ class ServersApi(cdk.Construct):
             entry='parameter_lambda',
             index='main.py',
             handler='main',
-            runtime=_lambda.Runtime.PYTHON_3_8,
-            timeout=cdk.Duration.seconds(30),
+            runtime=Runtime.PYTHON_3_8,
+            timeout=Duration.seconds(30),
             environment={
                 'USER_POOL_PARAMETER': user_pool_parameter.parameter_name
             }
         )
         user_pool_parameter.grant_read(user_pool_parameter_lambda)
 
-        user_pool_authorizer = apigw.CognitoUserPoolsAuthorizer(
+        user_pool_authorizer = CognitoUserPoolsAuthorizer(
             self, 'UserPoolAuthorizer',
             cognito_user_pools = [user_pool]
         )
@@ -88,16 +86,16 @@ class ServersApi(cdk.Construct):
         # /api/user_pool
         parameter = api.add_resource(
             'user_pool',
-            default_integration=apigw.LambdaIntegration(user_pool_parameter_lambda),
-            default_method_options=apigw.MethodOptions(authorization_type=apigw.AuthorizationType.NONE)
+            default_integration=LambdaIntegration(user_pool_parameter_lambda),
+            default_method_options=MethodOptions(authorization_type=AuthorizationType.NONE)
         )
         parameter.add_method('GET')
     
         # /api/servers
         servers = api.add_resource(
             'servers',
-            default_integration=apigw.LambdaIntegration(servers_lambda),
-            default_method_options=apigw.MethodOptions(authorizer=user_pool_authorizer)
+            default_integration=LambdaIntegration(servers_lambda),
+            default_method_options=MethodOptions(authorizer=user_pool_authorizer)
         )
         servers.add_method('GET')
         servers.add_method('PUT')
@@ -105,8 +103,8 @@ class ServersApi(cdk.Construct):
         # /api/servers/{hostname}
         server = servers.add_resource(
             '{hostname}',
-            default_integration=apigw.LambdaIntegration(server_lambda),
-            default_method_options=apigw.MethodOptions(authorizer=user_pool_authorizer)
+            default_integration=LambdaIntegration(server_lambda),
+            default_method_options=MethodOptions(authorizer=user_pool_authorizer)
         )
         server.add_method('GET')
         server.add_method('PUT')
