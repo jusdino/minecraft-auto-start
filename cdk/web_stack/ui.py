@@ -6,7 +6,6 @@ from aws_cdk.aws_s3_deployment import BucketDeployment, Source
 from aws_cdk.aws_apigateway import Resource, AwsIntegration, IntegrationOptions, IntegrationResponse, MethodResponse
 
 
-
 class ServersUi(Construct):
     """
     Add a /ui/ endpoint to the provided Resource that serves static content from an s3 bucket

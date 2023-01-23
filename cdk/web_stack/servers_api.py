@@ -1,15 +1,12 @@
 from constructs import Construct
-from aws_cdk import Duration
+from aws_cdk import Duration, Stack
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_cognito import UserPool, UserPoolClient
 from aws_cdk.aws_dynamodb import Table
 from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_ssm import StringParameter
-from aws_cdk.aws_ecs import Cluster, ITaskDefinition
 from aws_cdk.aws_lambda_python_alpha import PythonFunction
 from aws_cdk.aws_apigateway import Resource, LambdaIntegration, MethodOptions, AuthorizationType, CognitoUserPoolsAuthorizer
-
-from .launcher import GrantingTaskDefinition
 
 
 class ServersApi(Construct):
@@ -17,23 +14,22 @@ class ServersApi(Construct):
     def __init__(
             self, scope: Construct,
             construct_id: str,
-            context,
             resource: Resource,
             user_pool: UserPool,
             user_client: UserPoolClient,
             user_pool_parameter: StringParameter,
-            launcher_network_config_parameter: StringParameter,
-            launcher_task_definition: GrantingTaskDefinition,
-            launcher_cluster: Cluster,
+            launcher,
             **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         server_domain = self.node.try_get_context('server_domain')
+        servers_table_name = self.node.try_get_context('servers_table_name')
+        kms_key_id = self.node.try_get_context('kms_key_id')
 
-        servers_table = Table.from_table_name(self, 'servers-dynamo', context['servers_table_name'])
+        servers_table = Table.from_table_name(self, 'servers-dynamo', servers_table_name)
         servers_key = Key.from_key_arn(
             self, 'ServersKey',
-            f'arn:aws:kms:{context["region"]}:{context["account_id"]}:key/{context["kms_key_id"]}'
+            f'arn:aws:kms:{Stack.of(self).region}:{Stack.of(self).account}:key/{kms_key_id}'
         )
 
         class ServerLambda(PythonFunction):
@@ -48,16 +44,12 @@ class ServersApi(Construct):
                     environment={
                         'SERVER_DOMAIN': server_domain,
                         'DYNAMODB_SERVERS_TABLE_NAME': servers_table.table_name,
-                        'LAUNCHER_NETWORK_CONFIG_PARAMETER': launcher_network_config_parameter.parameter_name,
-                        'LAUNCHER_TASK_ARN': launcher_task_definition.task_definition_arn,
-                        'CLUSTER_ARN': launcher_cluster.cluster_arn
+                        'LAUNCHER_FUNCTION_ARN': launcher.function.function_arn
                     }
                 )
                 servers_table.grant_read_write_data(self)
                 servers_key.grant_encrypt_decrypt(self)
-                launcher_network_config_parameter.grant_read(self)
-                launcher_task_definition.grant_run(self)
-
+                launcher.function.grant_invoke(self)
 
         servers_lambda = ServerLambda(self, 'ServersLambda', handler='servers')
         server_lambda = ServerLambda(self, 'ServerLambda', handler='server')

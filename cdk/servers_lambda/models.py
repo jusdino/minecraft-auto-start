@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from random import randint
 from time import sleep
@@ -12,7 +13,7 @@ from config import config, logger
 
 
 dynamodb = boto3.resource('dynamodb')
-ecs = boto3.client('ecs')
+lambda_ = boto3.client('lambda')
 
 
 class BasicServer():
@@ -177,21 +178,17 @@ class LaunchableServer(BasicServer):
             self.table.put_item(Item=data)
 
     def launch(self):
-        logger.info('Running task: %s on cluster %s', config['LAUNCHER_TASK_ARN'], config['CLUSTER_ARN'])
-        ecs.run_task(
-            launchType='FARGATE',
-            networkConfiguration=config['LAUNCHER_NETWORK_CONFIG'],
-            overrides={
-                'containerOverrides': [{
-                    'name': 'launcher',
-                    'environment': [{
-                        'name': 'SERVER_NAME',
-                        'value': self.name
-                    }]
-                }]
-            },
-            taskDefinition=config['LAUNCHER_TASK_ARN'],
-            cluster=config['CLUSTER_ARN']
+        logger.info('Invoking server launcher function')
+        lambda_.invoke(
+            FunctionName=config['LAUNCHER_FUNCTION_ARN'],
+            InvocationType='Event',
+            Payload=json.dumps({
+                'server_name': self.name,
+                # TODO: look the below values up from new db fields
+                'instance_type': 't3.large',
+                'volume_size': 20,
+                'memory_size': '6144m'
+            })
         )
         for i in range(3):
             try:

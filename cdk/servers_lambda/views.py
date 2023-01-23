@@ -7,8 +7,6 @@ from models import BasicServer, LaunchableServer
 from schema import LaunchableServerSchema
 
 
-config.pull_configs()
-
 def servers(event, context):
     logger.debug('Received event: %s', json.dumps(event))
     if event['httpMethod'] == 'GET':
@@ -19,6 +17,7 @@ def servers(event, context):
         'statusCode': 200,
         'body': json.dumps(event)
     }
+
 
 def server(event, context):
     logger.debug(f'Received server event: %s', json.dumps(event))
