@@ -1,4 +1,6 @@
-from test import BaseTestMAS, mock_resource
+from unittest.mock import patch
+
+from test import BaseTestMAS
 
 
 class TestBasicServer(BaseTestMAS):
@@ -16,8 +18,8 @@ class TestBasicServer(BaseTestMAS):
         server = BasicServer(name='name')
         self.assertEqual(f'name.{config["SERVER_DOMAIN"]}', server.hostname)
 
-    def test_get_server_by_hostname(self):
-        mock_table = mock_resource.return_value.Table.return_value
+    @patch('models.BasicServer.table')
+    def test_get_server_by_hostname(self, mock_table):
         mock_table.get_item.return_value = {
             'Item': {
                 'hostname': 'foo.bar',

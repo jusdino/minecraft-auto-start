@@ -1,0 +1,6 @@
+{
+  "server_name": "foo.some.org",
+  "instance_type": "t3.large",
+  "volume_size": 20,
+  "memory_size": "6144m"
+}
