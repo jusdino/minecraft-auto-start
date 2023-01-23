@@ -14,3 +14,4 @@ package-lock.json
 cdk.context.json
 */ui-static/*
 */node_modules/*
+.node-version

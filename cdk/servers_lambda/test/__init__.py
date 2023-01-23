@@ -18,9 +18,7 @@ class BaseTestMAS(TestCase):
                 'APP_NAME': 'launcher',
                 'SERVER_DOMAIN': 'foo.bar',
                 'DYNAMODB_SERVERS_TABLE_NAME': 'some-table',
-                'LAUNCHER_TASK_ARN': 'arn:aws:stuff:like:an/arn',
-                'LAUNCHER_NETWORK_CONFIG_PARAMETER': 'a-parameter-name',
-                'CLUSTER_ARN': 'arn:aws:some:cluster/arn',
+                'LAUNCHER_FUNCTION_ARN': 'arn:aws:stuff:like:an/arn'
         }
         with patch.dict(os.environ, self.env_vars):
             from config import config
