@@ -9,15 +9,15 @@ from aws_cdk.aws_ssm import StringParameter
 
 class Users(Construct):
 
-    def __init__(self, scope: Construct, construct_id: str, domain_name: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, domain_name: str, removal: RemovalPolicy, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
-        email_body=textwrap.dedent(
+        email_body = textwrap.dedent(
             f'You are invited to join a Minecraft-Auto-Start server at https://{domain_name}/ui/.  '
             f'Your username is {{username}} and temporary password is {{####}}.'
         )
         self.user_pool = UserPool(
             self, 'Users',
-            removal_policy=RemovalPolicy.DESTROY,
+            removal_policy=removal,
             user_invitation=UserInvitationConfig(
                 email_subject='Minecraft-Auto-Start invitation',
                 email_body=email_body
