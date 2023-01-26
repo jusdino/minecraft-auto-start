@@ -8,6 +8,7 @@ from aws_cdk.aws_iam import PolicyStatement, Effect
 # We'll import the whole module here to dance around the massive module crushing IntelliJ
 from aws_cdk import aws_ec2 as ec2
 
+from persistent_stack import PersistentStack
 from server_stack import ServerStack
 
 
@@ -16,14 +17,16 @@ class Launcher(Construct):
     Just look up existing resources until we migrate them to CDK
     """
 
-    def __init__(self, scope: Construct, construct_id: str, server_stack: ServerStack, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, *,
+                 domain_name: str,
+                 server_stack: ServerStack,
+                 persistent_stack: PersistentStack,
+                 **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
         debug = 'true' if self.node.try_get_context('debug') is True else 'false'
         environment_name = self.node.try_get_context('environment')
-        hosted_zone_name = self.node.try_get_context('server_domain')
         hosted_zone_id = self.node.try_get_context('hosted_zone_id')
         server_security_group_id = self.node.try_get_context('server_security_group_id')
-        data_bucket_id = self.node.try_get_context('data_bucket_id')
         key_pair_name = self.node.try_get_context('key_pair_name')
         vpc_name = self.node.try_get_context('vpc_name')
         vpc = ec2.Vpc.from_lookup(
@@ -49,9 +52,9 @@ class Launcher(Construct):
                 'DEBUG': debug,
                 'TAGS': json.dumps(server_tags),
                 'SSH_KEY_NAME': key_pair_name,
-                'DATA_BUCKET_ID': data_bucket_id,
+                'DATA_BUCKET_ID': persistent_stack.data_bucket.bucket_name,
                 'HOSTED_ZONE_ID': hosted_zone_id,
-                'HOSTED_ZONE_NAME': hosted_zone_name,
+                'HOSTED_ZONE_NAME': domain_name,
                 'SECURITY_GROUP_ID': server_security_group_id,
                 'SUBNET_ID': server_subnet_id,
                 'INSTANCE_PROFILE_ARN': server_stack.profile.instance_profile.attr_arn

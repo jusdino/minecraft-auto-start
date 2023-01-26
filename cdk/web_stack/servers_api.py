@@ -1,12 +1,10 @@
 from constructs import Construct
-from aws_cdk import Duration, Stack
-from aws_cdk.aws_kms import Key
-from aws_cdk.aws_cognito import UserPool, UserPoolClient
-from aws_cdk.aws_dynamodb import Table
+from aws_cdk import Duration
 from aws_cdk.aws_lambda import Runtime
-from aws_cdk.aws_ssm import StringParameter
 from aws_cdk.aws_lambda_python_alpha import PythonFunction
 from aws_cdk.aws_apigateway import Resource, LambdaIntegration, MethodOptions, AuthorizationType, CognitoUserPoolsAuthorizer
+
+from persistent_stack import PersistentStack
 
 
 class ServersApi(Construct):
@@ -15,22 +13,12 @@ class ServersApi(Construct):
             self, scope: Construct,
             construct_id: str,
             resource: Resource,
-            user_pool: UserPool,
-            user_client: UserPoolClient,
-            user_pool_parameter: StringParameter,
+            persistent_stack: PersistentStack,
             launcher,
             **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         server_domain = self.node.try_get_context('server_domain')
-        servers_table_name = self.node.try_get_context('servers_table_name')
-        kms_key_id = self.node.try_get_context('kms_key_id')
-
-        servers_table = Table.from_table_name(self, 'servers-dynamo', servers_table_name)
-        servers_key = Key.from_key_arn(
-            self, 'ServersKey',
-            f'arn:aws:kms:{Stack.of(self).region}:{Stack.of(self).account}:key/{kms_key_id}'
-        )
 
         class ServerLambda(PythonFunction):
             def __init__(self, scope, construct_id, handler: str):
@@ -43,12 +31,12 @@ class ServersApi(Construct):
                     timeout=Duration.seconds(30),
                     environment={
                         'SERVER_DOMAIN': server_domain,
-                        'DYNAMODB_SERVERS_TABLE_NAME': servers_table.table_name,
+                        'DYNAMODB_SERVERS_TABLE_NAME': persistent_stack.servers_table.table_name,
                         'LAUNCHER_FUNCTION_ARN': launcher.function.function_arn
                     }
                 )
-                servers_table.grant_read_write_data(self)
-                servers_key.grant_encrypt_decrypt(self)
+                persistent_stack.servers_table.grant_read_write_data(self)
+                persistent_stack.encryption_key.grant_encrypt_decrypt(self)
                 launcher.function.grant_invoke(self)
 
         servers_lambda = ServerLambda(self, 'ServersLambda', handler='servers')
@@ -62,14 +50,14 @@ class ServersApi(Construct):
             runtime=Runtime.PYTHON_3_8,
             timeout=Duration.seconds(30),
             environment={
-                'USER_POOL_PARAMETER': user_pool_parameter.parameter_name
+                'USER_POOL_PARAMETER': persistent_stack.users.user_pool_parameter.parameter_name
             }
         )
-        user_pool_parameter.grant_read(user_pool_parameter_lambda)
+        persistent_stack.users.user_pool_parameter.grant_read(user_pool_parameter_lambda)
 
         user_pool_authorizer = CognitoUserPoolsAuthorizer(
             self, 'UserPoolAuthorizer',
-            cognito_user_pools = [user_pool]
+            cognito_user_pools=[persistent_stack.users.user_pool]
         )
 
         # /api
