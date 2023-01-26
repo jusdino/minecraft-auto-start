@@ -17,7 +17,8 @@ class ServersUi(Construct):
             self, 'AssetBucket',
             website_index_document='index.html',
             public_read_access=True,
-            removal_policy=RemovalPolicy.DESTROY
+            removal_policy=RemovalPolicy.DESTROY,
+            auto_delete_objects=True
         )
         BucketDeployment(
             self, 'BucketDeployment',
