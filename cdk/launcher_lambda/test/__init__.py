@@ -30,7 +30,7 @@ class LauncherTst(TestCase):
                 'Key': 'foo',
                 'Value': 'bar'}]),
             'SSH_KEY_NAME': 'foo-key-name',
-            'HOSTED_ZONE_NAME': 'some.org',
+            'SUB_DOMAIN': 'some.org',
             'DATA_BUCKET_ID': 'some-data-bucket',
             # Will replace with identifiers from moto
             'HOSTED_ZONE_ID': 'foo-id',

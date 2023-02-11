@@ -13,14 +13,14 @@ class Api(Construct):
 
     def __init__(self, scope: Construct, construct_id: str, api_domain_name, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
-        environment = self.node.try_get_context('environment')
-        server_domain = self.node.try_get_context('server_domain')
+        environment_name = self.node.try_get_context('environment')
+        sub_domain = self.node.try_get_context('sub_domain')
         hosted_zone_id = self.node.try_get_context('hosted_zone_id')
 
         hosted_zone = HostedZone.from_hosted_zone_attributes(
             self, 'Zone',
             hosted_zone_id=hosted_zone_id,
-            zone_name=server_domain
+            zone_name=sub_domain
         )
         certificate = Certificate(
             self, 'StartCert',
@@ -34,7 +34,7 @@ class Api(Construct):
                 domain_name=api_domain_name
             ),
             deploy_options=StageOptions(
-                stage_name=environment
+                stage_name=environment_name
             )
         )
         arecord = ARecord(

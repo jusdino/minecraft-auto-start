@@ -55,9 +55,15 @@ class Server():
         instances = tuple(x for x in ec2.instances.filter(
             Filters=[
                 {
-                    'Name': 'tag:Name',
+                    'Name': 'tag:name',
                     'Values': [
                         self.server_name,
+                    ]
+                },
+                {
+                    'Name': 'tag:environment',
+                    'Values': [
+                        self.config.environment_name,
                     ]
                 },
                 {
@@ -74,7 +80,7 @@ class Server():
         for k, v in {
             '__SERVER_NAME__': self.server_name,
             '__DATA_BUCKET_ID__': self.config.data_bucket_id,
-            '__HOSTED_ZONE_NAME__': self.config.hosted_zone_name,
+            '__SUB_DOMAIN__': self.config.sub_domain,
             '__HOSTED_ZONE_ID__': self.config.hosted_zone_id,
             '__AWS_REGION__': self.config.aws_region,
             '__MEMORY__': memory_size
@@ -100,13 +106,13 @@ class Server():
         image_id = self._get_image_id()
         tags = self.config.tags.copy()
         tags.append({
-            'Key': 'Name',
+            'Key': 'name',
             'Value': self.server_name
         })
         instance = ec2.create_instances(
             BlockDeviceMappings=[
                 {
-                    'DeviceName': '/dev/sda1',
+                    'DeviceName': '/dev/sdb',
                     'Ebs': {
                         'VolumeSize': volume_size,
                         'VolumeType': 'gp3',
@@ -169,7 +175,7 @@ class Server():
                 {
                     'Action': 'UPSERT',
                     'ResourceRecordSet': {
-                        'Name': f'{self.server_name}.{self.config.hosted_zone_name}',
+                        'Name': f'{self.server_name}.{self.config.sub_domain}',
                         'Type': 'A',
                         'TTL': 60,
                         'ResourceRecords': [

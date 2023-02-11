@@ -16,7 +16,7 @@ class TestBasicServer(BaseTestMAS):
         from config import config
 
         server = BasicServer(name='name')
-        self.assertEqual(f'name.{config["SERVER_DOMAIN"]}', server.hostname)
+        self.assertEqual(f'name.{config["SUB_DOMAIN"]}', server.hostname)
 
     @patch('models.BasicServer.table')
     def test_get_server_by_hostname(self, mock_table):

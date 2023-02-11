@@ -14,7 +14,7 @@ env = Environment(
 )
 
 environment_name = app.node.try_get_context('environment')
-server_domain = app.node.try_get_context('server_domain')
+sub_domain = app.node.try_get_context('sub_domain')
 stack_name = "mas" if environment_name == 'prod' else f'mas-{environment_name}'
 
 tags = {
@@ -23,15 +23,15 @@ tags = {
 }
 
 if environment_name != 'prod':
-    server_domain = f'{environment_name}.{server_domain}'
-api_domain_name = f'start.{server_domain}'
+    sub_domain = f'{environment_name}.{sub_domain}'
+api_domain_name = f'start.{sub_domain}'
 
-persistent_stack = PersistentStack(app, stack_name, env=env, api_domain_name=api_domain_name, domain_name=server_domain)
+persistent_stack = PersistentStack(app, stack_name, env=env, api_domain_name=api_domain_name, sub_domain=sub_domain)
 server_stack = ServerStack(app, f'{stack_name}-server', env=env, persistent_stack=persistent_stack)
 web_stack = WebStack(
     app, f'{stack_name}-web',
     api_domain_name=api_domain_name,
-    domain_name=server_domain,
+    sub_domain=sub_domain,
     persistent_stack=persistent_stack,
     server_stack=server_stack,
     env=env

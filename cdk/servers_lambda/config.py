@@ -9,7 +9,7 @@ class Config(dict):
 
 config = Config({
     'APP_NAME': os.getenv("APP_NAME", "servers"),
-    'SERVER_DOMAIN': os.environ['SERVER_DOMAIN'],
+    'SUB_DOMAIN': os.environ['SUB_DOMAIN'],
     'DYNAMODB_SERVERS_TABLE_NAME': os.environ['DYNAMODB_SERVERS_TABLE_NAME'],
     'LAUNCHER_FUNCTION_ARN': os.environ['LAUNCHER_FUNCTION_ARN'],
     'SERVER_STATUS_TTL': timedelta(seconds=30),

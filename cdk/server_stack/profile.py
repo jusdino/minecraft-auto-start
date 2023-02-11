@@ -1,25 +1,18 @@
 from aws_cdk import Stack
 from aws_cdk.aws_iam import Role, ServicePrincipal, PolicyDocument, PolicyStatement, Effect, CfnInstanceProfile
 from constructs import Construct
-# We'll import the whole module here to dance around the massive module crushing IntelliJ
-from aws_cdk import aws_ec2 as ec2
 
 from persistent_stack import PersistentStack
+from server_stack import Networking
 
 
 class Profile(Construct):
     """
     A generic instance profile that has the AWS permissions needed by our minecraft servers
     """
-    def __init__(self, scope: Construct, construct_id: str, persistent_stack: PersistentStack, **kwargs) -> None:
-        super().__init__(scope, construct_id, **kwargs)
-        vpc_name = self.node.try_get_context('vpc_name')
-        vpc = ec2.Vpc.from_lookup(
-            self, 'Vpc',
-            vpc_name=vpc_name
-        )
-        hosted_zone_id = self.node.try_get_context('hosted_zone_id')
-        server_subnet_id = vpc.public_subnets[0].subnet_id
+    def __init__(self, scope: Construct, construct_id: str, persistent_stack: PersistentStack, networking: Networking, **kwargs) -> None:
+        super().__init__(scope, construct_id)
+        hosted_zone_id = scope.node.try_get_context('hosted_zone_id')
 
         # We'll add some direct IAM permissions for ec2 stuff that isn't covered by cdk
         policy_doc = PolicyDocument(
@@ -51,7 +44,7 @@ class Profile(Construct):
                     resources=['*'],
                     conditions={
                         'StringEqualsIfExists': {
-                            'ec2:Subnet': f'arn:{Stack.of(self).partition}:ec2:{Stack.of(self).region}:{Stack.of(self).account}:subnet/{server_subnet_id}'
+                            'ec2:Subnet': f'arn:{Stack.of(self).partition}:ec2:{Stack.of(self).region}:{Stack.of(self).account}:subnet/{networking.subnet.subnet_id}'
                         },
                     }
                 )
@@ -68,5 +61,3 @@ class Profile(Construct):
             self, 'InstanceProfile',
             roles=[self.role.role_name]
         )
-        # self.instance_profile.add_dependency(self.role.node.default_child)
-        # print(self.instance_profile.obtain_dependencies())
