@@ -25,10 +25,11 @@ class LauncherTst(TestCase):
     def setUpClass(cls):
         lambda_env = {
             'DEBUG': 'true',
+            'ENV': 'test-env',
             'AWS_DEFAULT_REGION': 'us-west-1',
             'TAGS': json.dumps([{
-                'Key': 'foo',
-                'Value': 'bar'}]),
+                'Key': 'environment',
+                'Value': 'test-env'}]),
             'SSH_KEY_NAME': 'foo-key-name',
             'SUB_DOMAIN': 'some.org',
             'DATA_BUCKET_ID': 'some-data-bucket',
