@@ -18,7 +18,7 @@ class ServersApi(Construct):
             **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        server_domain = self.node.try_get_context('server_domain')
+        sub_domain = self.node.try_get_context('sub_domain')
 
         class ServerLambda(PythonFunction):
             def __init__(self, scope, construct_id, handler: str):
@@ -30,7 +30,7 @@ class ServersApi(Construct):
                     runtime=Runtime.PYTHON_3_8,
                     timeout=Duration.seconds(30),
                     environment={
-                        'SERVER_DOMAIN': server_domain,
+                        'SUB_DOMAIN': sub_domain,
                         'DYNAMODB_SERVERS_TABLE_NAME': persistent_stack.servers_table.table_name,
                         'LAUNCHER_FUNCTION_ARN': launcher.function.function_arn
                     }

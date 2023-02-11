@@ -21,7 +21,7 @@ class TestSynth(TestCase):
 
         environment_name = context['environment']
         stack_name = "mas" if environment_name == 'prod' else f'mas-{environment_name}'
-        server_domain = app.node.try_get_context('server_domain')
+        sub_domain = app.node.try_get_context('sub_domain')
 
         tags = {
             'environment': environment_name,
@@ -29,15 +29,15 @@ class TestSynth(TestCase):
         }
 
         if environment_name != 'prod':
-            server_domain = f'{environment_name}.{server_domain}'
-        api_domain_name = f'start.{server_domain}'
+            sub_domain = f'{environment_name}.{sub_domain}'
+        api_domain_name = f'start.{sub_domain}'
 
-        persistent_stack = PersistentStack(app, stack_name, env=env, domain_name=server_domain, api_domain_name=api_domain_name)
+        persistent_stack = PersistentStack(app, stack_name, env=env, sub_domain=sub_domain, api_domain_name=api_domain_name)
         server_stack = ServerStack(app, f'{stack_name}-server', env=env, persistent_stack=persistent_stack)
         web_stack = WebStack(
             app, f'{stack_name}-web',
             api_domain_name=api_domain_name,
-            domain_name=server_domain,
+            sub_domain=sub_domain,
             persistent_stack=persistent_stack,
             server_stack=server_stack,
             env=env

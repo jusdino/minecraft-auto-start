@@ -9,7 +9,7 @@ from .users import Users
 
 class PersistentStack(Stack):
 
-    def __init__(self, scope: Construct, construct_id: str, api_domain_name: str, domain_name: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, api_domain_name: str, sub_domain: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
         environment = self.node.try_get_context('environment')
         # Only set removal policies to RETAIN for prod
@@ -29,7 +29,7 @@ class PersistentStack(Stack):
         # Note: Normally it's a good idea to avoid forcing resource names in CloudFormation
         # but in this case, since I'm frequently interacting with data in this bucket manually,
         # I want it to be a convenient name
-        bucket_name = f'mas-{domain_name.replace(".", "-")}-data'
+        bucket_name = f'mas-{sub_domain.replace(".", "-")}-data'
         self.data_bucket = Bucket(
             self, 'Data',
             bucket_name=bucket_name,

@@ -15,7 +15,7 @@ class WebStack(Stack):
                  scope: Construct,
                  construct_id: str,
                  api_domain_name: str,
-                 domain_name: str,
+                 sub_domain: str,
                  server_stack: ServerStack,
                  persistent_stack: PersistentStack,
                  **kwargs) -> None:
@@ -26,7 +26,7 @@ class WebStack(Stack):
             self, 'Launcher',
             server_stack=server_stack,
             persistent_stack=persistent_stack,
-            domain_name=domain_name
+            sub_domain=sub_domain
         )
         ServersApi(
             self, 'Servers',

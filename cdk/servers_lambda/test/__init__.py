@@ -16,7 +16,7 @@ class BaseTestMAS(TestCase):
     def setUp(self):
         self.env_vars = {
                 'APP_NAME': 'launcher',
-                'SERVER_DOMAIN': 'foo.bar',
+                'SUB_DOMAIN': 'foo.bar',
                 'DYNAMODB_SERVERS_TABLE_NAME': 'some-table',
                 'LAUNCHER_FUNCTION_ARN': 'arn:aws:stuff:like:an/arn'
         }

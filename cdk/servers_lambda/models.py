@@ -23,7 +23,7 @@ class BasicServer():
     def __init__(self, **kwargs):
         self.data = dict(**kwargs)
         if not self.data.get('hostname', False):
-            self.data['hostname'] = f"{self.data['name']}.{config['SERVER_DOMAIN']}"
+            self.data['hostname'] = f"{self.data['name']}.{config['SUB_DOMAIN']}"
 
     @classmethod
     def get_server_by_hostname(cls, hostname, consistent_read=False):

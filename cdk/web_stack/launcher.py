@@ -5,8 +5,6 @@ from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_lambda_python_alpha import PythonFunction
 from constructs import Construct
 from aws_cdk.aws_iam import PolicyStatement, Effect
-# We'll import the whole module here to dance around the massive module crushing IntelliJ
-from aws_cdk import aws_ec2 as ec2
 
 from persistent_stack import PersistentStack
 from server_stack import ServerStack
@@ -18,7 +16,7 @@ class Launcher(Construct):
     """
 
     def __init__(self, scope: Construct, construct_id: str, *,
-                 domain_name: str,
+                 sub_domain: str,
                  server_stack: ServerStack,
                  persistent_stack: PersistentStack,
                  **kwargs) -> None:
@@ -26,15 +24,9 @@ class Launcher(Construct):
         debug = 'true' if self.node.try_get_context('debug') is True else 'false'
         environment_name = self.node.try_get_context('environment')
         hosted_zone_id = self.node.try_get_context('hosted_zone_id')
-        server_security_group_id = self.node.try_get_context('server_security_group_id')
-        key_pair_name = self.node.try_get_context('key_pair_name')
-        vpc_name = self.node.try_get_context('vpc_name')
-        vpc = ec2.Vpc.from_lookup(
-            self, 'Vpc',
-            vpc_name=vpc_name
-        )
+        key_pair_name = server_stack.key_pair.key_name
 
-        server_subnet_id = vpc.public_subnets[0].subnet_id
+        server_subnet_id = server_stack.networking.subnet.subnet_id
         server_tags = [
             {
                 'Key': 'environment',
@@ -50,12 +42,13 @@ class Launcher(Construct):
             timeout=Duration.seconds(30),
             environment={
                 'DEBUG': debug,
+                'ENV': environment_name,
                 'TAGS': json.dumps(server_tags),
-                'SSH_KEY_NAME': key_pair_name,
+                'SSH_KEY_NAME': server_stack.key_pair.key_name,
                 'DATA_BUCKET_ID': persistent_stack.data_bucket.bucket_name,
                 'HOSTED_ZONE_ID': hosted_zone_id,
-                'HOSTED_ZONE_NAME': domain_name,
-                'SECURITY_GROUP_ID': server_security_group_id,
+                'SUB_DOMAIN': sub_domain,
+                'SECURITY_GROUP_ID': server_stack.networking.security_group.security_group_id,
                 'SUBNET_ID': server_subnet_id,
                 'INSTANCE_PROFILE_ARN': server_stack.profile.instance_profile.attr_arn
             }
@@ -87,7 +80,7 @@ class Launcher(Construct):
                 'arn:aws:ec2:*:*:volume/*',
                 'arn:aws:ec2:*::image/ami-*',
                 f'arn:aws:ec2:*:*:key-pair/{key_pair_name}',
-                f'arn:aws:ec2:*:*:security-group/{server_security_group_id}'
+                f'arn:aws:ec2:*:*:security-group/{server_stack.networking.security_group.security_group_id}'
             ]
         ))
         # Allow function to update DNS records where we expect them
