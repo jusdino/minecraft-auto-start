@@ -143,7 +143,14 @@ class LaunchableServer(BasicServer):
             self.status = status
         except (ConnectionRefusedError, BrokenPipeError, OSError):
             self.status = status_schema.dump({})
-        if self.data['status']['description']['text'] != 'Offline' or not self.launching:
+        launch_time = self.launch_time
+        if self.data['status']['description']['text'] != 'Offline':
+            if launch_time is not None:
+                logger.info('Server live after %s seconds', (datetime.utcnow() - launch_time).total_seconds())
+            self.launch_time = None
+        elif not self.launching:
+            if launch_time is not None:
+                logger.info('Server not live after %s seconds', (datetime.utcnow() - launch_time).total_seconds())
             self.launch_time = None
         self.status_time = datetime.utcnow()
         self.save(safe=False)

@@ -1,8 +1,6 @@
-from time import sleep
 from typing import List
 from logging import Logger
 import boto3
-from botocore.exceptions import ClientError
 
 from config import Config
 
