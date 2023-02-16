@@ -4,6 +4,9 @@ set -x
 export SERVER_NAME=__SERVER_NAME__
 export DATA_BUCKET=__DATA_BUCKET_ID__
 
+# Sometimes, mkfs.xfs is not already installed
+yum install -y xfsprogs
+
 # Prepare data volume
 export DATA_DIR=/data
 mkfs -t xfs /dev/sdb
