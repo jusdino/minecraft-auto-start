@@ -154,10 +154,6 @@ sshpubkeys==3.3.1
     # via moto
 toml==0.10.2
     # via responses
-tomli==2.0.1
-    # via
-    #   build
-    #   pyproject-hooks
 types-toml==0.10.8.3
     # via responses
 typing-extensions==4.4.0
@@ -173,7 +169,7 @@ urllib3==1.26.14
     #   responses
 websocket-client==1.5.1
     # via docker
-werkzeug==2.2.2
+werkzeug==2.2.3
     # via moto
 wheel==0.38.4
     # via pip-tools
