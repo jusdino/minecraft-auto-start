@@ -35,6 +35,7 @@ class PersistentStack(Stack):
             bucket_name=bucket_name,
             block_public_access=BlockPublicAccess.BLOCK_ALL,
             removal_policy=removal,
+            versioned=environment == 'prod',
             encryption=BucketEncryption.KMS,
             encryption_key=self.encryption_key,
             auto_delete_objects=removal == RemovalPolicy.DESTROY
