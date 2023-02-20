@@ -13,7 +13,7 @@ config = Config({
     'DYNAMODB_SERVERS_TABLE_NAME': os.environ['DYNAMODB_SERVERS_TABLE_NAME'],
     'LAUNCHER_FUNCTION_ARN': os.environ['LAUNCHER_FUNCTION_ARN'],
     'SERVER_STATUS_TTL': timedelta(seconds=30),
-    'LAUNCHER_TIMEOUT': timedelta(minutes=10),
+    'LAUNCHER_TIMEOUT': timedelta(minutes=15),
     'DEBUG': True,
 })
 

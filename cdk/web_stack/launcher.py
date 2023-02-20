@@ -3,6 +3,7 @@ import json
 from aws_cdk import Duration, Stack
 from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_lambda_python_alpha import PythonFunction
+from aws_cdk.aws_logs import RetentionDays
 from constructs import Construct
 from aws_cdk.aws_iam import PolicyStatement, Effect
 
@@ -29,7 +30,7 @@ class Launcher(Construct):
         server_subnet_id = server_stack.networking.subnet.subnet_id
         server_tags = [
             {
-                'Key': 'environment',
+                'Key': 'Environment',
                 'Value': environment_name
             }
         ]
@@ -40,6 +41,7 @@ class Launcher(Construct):
             handler='main',
             runtime=Runtime.PYTHON_3_8,
             timeout=Duration.seconds(30),
+            log_retention=RetentionDays.ONE_MONTH,
             environment={
                 'DEBUG': debug,
                 'ENV': environment_name,
@@ -119,7 +121,9 @@ class Launcher(Construct):
             resources=['*'],
             conditions={
                 'StringEqualsIfExists': {
-                    'ec2:Subnet': f'arn:aws:ec2:{Stack.of(self).region}:{Stack.of(self).account}:subnet/{server_subnet_id}'
+                    'ec2:Subnet':
+                        f'arn:aws:ec2:{Stack.of(self).region}:'
+                        f'{Stack.of(self).account}:subnet/{server_subnet_id}'
                 },
             }
         ))

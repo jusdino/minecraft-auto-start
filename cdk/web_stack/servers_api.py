@@ -1,8 +1,10 @@
+from aws_cdk.aws_logs import RetentionDays
 from constructs import Construct
 from aws_cdk import Duration
 from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_lambda_python_alpha import PythonFunction
-from aws_cdk.aws_apigateway import Resource, LambdaIntegration, MethodOptions, AuthorizationType, CognitoUserPoolsAuthorizer
+from aws_cdk.aws_apigateway import Resource, LambdaIntegration, MethodOptions, \
+    AuthorizationType, CognitoUserPoolsAuthorizer
 
 from persistent_stack import PersistentStack
 
@@ -28,6 +30,7 @@ class ServersApi(Construct):
                     index='views.py',
                     handler=handler,
                     runtime=Runtime.PYTHON_3_8,
+                    log_retention=RetentionDays.ONE_MONTH,
                     timeout=Duration.seconds(30),
                     environment={
                         'SUB_DOMAIN': sub_domain,
@@ -47,6 +50,7 @@ class ServersApi(Construct):
             entry='parameter_lambda',
             index='main.py',
             handler='main',
+            log_retention=RetentionDays.ONE_MONTH,
             runtime=Runtime.PYTHON_3_8,
             timeout=Duration.seconds(30),
             environment={
@@ -70,7 +74,7 @@ class ServersApi(Construct):
             default_method_options=MethodOptions(authorization_type=AuthorizationType.NONE)
         )
         parameter.add_method('GET')
-    
+
         # /api/servers
         servers = api.add_resource(
             'servers',

@@ -28,7 +28,7 @@ class LauncherTst(TestCase):
             'ENV': 'test-env',
             'AWS_DEFAULT_REGION': 'us-west-1',
             'TAGS': json.dumps([{
-                'Key': 'environment',
+                'Key': 'Environment',
                 'Value': 'test-env'}]),
             'SSH_KEY_NAME': 'foo-key-name',
             'SUB_DOMAIN': 'some.org',
@@ -105,4 +105,3 @@ class LauncherTst(TestCase):
                 HostedZoneId=os.environ['HOSTED_ZONE_ID'],
                 ChangeBatch=change_set
             )
-

@@ -53,13 +53,13 @@ class Server():
         instances = tuple(x for x in ec2.instances.filter(
             Filters=[
                 {
-                    'Name': 'tag:name',
+                    'Name': 'tag:Name',
                     'Values': [
                         self.server_name,
                     ]
                 },
                 {
-                    'Name': 'tag:environment',
+                    'Name': 'tag:Environment',
                     'Values': [
                         self.config.environment_name,
                     ]
@@ -92,7 +92,7 @@ class Server():
         AWS provides latest ami ids in ssm parameters for our convenience
         """
         return ssm.get_parameter(
-            Name='/aws/service/ami-amazon-linux-latest/amzn-ami-hvm-x86_64-gp2'
+            Name='/aws/service/ami-amazon-linux-latest/amzn2-ami-minimal-hvm-x86_64-ebs'
         )['Parameter']['Value']
 
     def _provision_instance(
@@ -104,7 +104,7 @@ class Server():
         image_id = self._get_image_id()
         tags = self.config.tags.copy()
         tags.append({
-            'Key': 'name',
+            'Key': 'Name',
             'Value': self.server_name
         })
         instance = ec2.create_instances(
@@ -112,9 +112,11 @@ class Server():
                 {
                     'DeviceName': '/dev/sdb',
                     'Ebs': {
+                        # Minimum 125 GB volume size for sc1/st1
                         'VolumeSize': volume_size,
                         'VolumeType': 'gp3',
-                        'DeleteOnTermination': True
+                        'DeleteOnTermination': True,
+                        # 'Throughput': 500
                     }
                 }
             ],
@@ -148,7 +150,7 @@ class Server():
             TagSpecifications=[
                 {
                     'ResourceType': 'elastic-ip',
-                    'Tags': self.config.tags
+                    'Tags': tags
                 },
             ]
         )

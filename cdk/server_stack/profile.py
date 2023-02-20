@@ -10,7 +10,11 @@ class Profile(Construct):
     """
     A generic instance profile that has the AWS permissions needed by our minecraft servers
     """
-    def __init__(self, scope: Construct, construct_id: str, persistent_stack: PersistentStack, networking: Networking, **kwargs) -> None:
+    def __init__(
+            self, scope: Construct,
+            construct_id: str,
+            persistent_stack: PersistentStack,
+            networking: Networking, **kwargs) -> None:
         super().__init__(scope, construct_id)
         hosted_zone_id = scope.node.try_get_context('hosted_zone_id')
 
@@ -44,9 +48,29 @@ class Profile(Construct):
                     resources=['*'],
                     conditions={
                         'StringEqualsIfExists': {
-                            'ec2:Subnet': f'arn:{Stack.of(self).partition}:ec2:{Stack.of(self).region}:{Stack.of(self).account}:subnet/{networking.subnet.subnet_id}'
+                            'ec2:Subnet':
+                                f'arn:{Stack.of(self).partition}:'
+                                f'ec2:{Stack.of(self).region}:{Stack.of(self).account}:'
+                                f'subnet/{networking.subnet.subnet_id}'
                         },
                     }
+                ),
+                PolicyStatement(
+                    effect=Effect.ALLOW,
+                    actions=[
+                        'logs:CreateLogGroup',
+                        'logs:CreateLogStream',
+                        'logs:PutLogEvents',
+                        'logs:DescribeLogStreams'
+                    ],
+                    resources=[
+                        f'arn:{Stack.of(self).partition}:'
+                        f'logs:{Stack.of(self).region}:{Stack.of(self).account}:'
+                        f'log-group:/aws/ec2/mas/*',
+                        f'arn:{Stack.of(self).partition}:'
+                        f'logs:{Stack.of(self).region}:{Stack.of(self).account}:'
+                        f'log-group:/aws/ec2/mas/*:log-stream:*'
+                    ]
                 )
             ]
         )

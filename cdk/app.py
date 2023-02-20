@@ -18,8 +18,8 @@ sub_domain = app.node.try_get_context('sub_domain')
 stack_name = "mas" if environment_name == 'prod' else f'mas-{environment_name}'
 
 tags = {
-    'environment': environment_name,
-    'stack_name': stack_name
+    'Environment': environment_name,
+    'StackName': stack_name
 }
 
 if environment_name != 'prod':

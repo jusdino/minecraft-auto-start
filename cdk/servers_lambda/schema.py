@@ -7,25 +7,41 @@ class DescrExtraSchema(Schema):
 
 
 class DescriptionSchema(Schema):
-    text = fields.String(required=True, default='Offline')
+    text = fields.String(required=True, dump_default='Offline')
     extra = fields.List(fields.Nested(DescrExtraSchema()))
 
 
 class PlayersSchema(Schema):
-    max = fields.Integer(required=True, default=0)
-    online = fields.Integer(required=True, default=0)
+    max = fields.Integer(required=True, dump_default=0)
+    online = fields.Integer(required=True, dump_default=0)
 
 
 class VersionSchema(Schema):
-    name = fields.String(required=True, default="N/A")
-    protocol = fields.String(required=True, default="N/A")
+    name = fields.String(required=True, dump_default="N/A")
+    protocol = fields.String(required=True, dump_default="N/A")
 
 
 class ServerStatusSchema(Schema):
-    description = fields.Nested(DescriptionSchema(), missing=DescriptionSchema().dumps({}), default=DescriptionSchema().dumps({}))
-    players = fields.Nested(PlayersSchema(), missing=PlayersSchema().dump({}), default=PlayersSchema().dump({}))
-    version = fields.Nested(VersionSchema(), missing=VersionSchema().dump({}), default=VersionSchema().dump({}))
-    favicon = fields.String(missing=None, default=None, allow_none=True)
+    description = fields.Nested(
+        DescriptionSchema(),
+        load_default=DescriptionSchema().dumps({}),
+        dump_default=DescriptionSchema().dumps({})
+    )
+    players = fields.Nested(
+        PlayersSchema(),
+        load_default=PlayersSchema().dump({}),
+        dump_default=PlayersSchema().dump({})
+    )
+    version = fields.Nested(
+        VersionSchema(),
+        load_default=VersionSchema().dump({}),
+        dump_default=VersionSchema().dump({})
+    )
+    favicon = fields.String(
+        load_default=None,
+        dump_default=None,
+        allow_none=True
+    )
 
 
 class BasicServerSchema(Schema):
@@ -41,7 +57,7 @@ class LaunchableServerSchema(BasicServerSchema):
     status_time = fields.String(required=False)
     launch_time = fields.String(required=False, allow_none=True)
     launching = fields.String(dump_only=True)
-    version = fields.Integer(default=0, missing=0)
+    version = fields.Integer(dump_default=0, load_default=0)
 
     @pre_load
     def deserialize_status(self, data, **kwargs):
