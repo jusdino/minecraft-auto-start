@@ -51,7 +51,13 @@ mount /dev/sdb "$DATA_DIR"
 # Install java 17, jq
 rpm --import https://yum.corretto.aws/corretto.key
 curl -L -o /etc/yum.repos.d/corretto.repo https://yum.corretto.aws/corretto.repo
-yum install -y java-17-amazon-corretto-devel jq screen
+yum install -y jq screen
+if [ __JAVA_VERSION__ -eq '8' ]; then
+  amazon-linux-extras enable corretto8
+  yum install -y java-1.8.0-amazon-corretto
+elif [ __JAVA_VERSION__ -eq '17' ]; then
+  yum install -y java-17-amazon-corretto
+fi
 
 cd "${DATA_DIR}"
 env >"cloud-init.env"

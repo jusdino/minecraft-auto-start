@@ -2,10 +2,11 @@ import os
 from unittest import TestCase, main
 from unittest.mock import patch
 
+import moto
 
 # Just mock these globally once and for all
-mock_resource = patch('boto3.resource').__enter__()
-mock_client = patch('boto3.client').__enter__()
+mock_dynamo = moto.mock_dynamodb()
+mock_dynamo.start()
 
 
 class BaseTestMAS(TestCase):
@@ -13,15 +14,38 @@ class BaseTestMAS(TestCase):
     Mock out required env vars then import config so our unit tests
     don't have any particular environmental variable dependencies.
     """
-    def setUp(self):
-        self.env_vars = {
-                'APP_NAME': 'launcher',
-                'SUB_DOMAIN': 'foo.bar',
-                'DYNAMODB_SERVERS_TABLE_NAME': 'some-table',
-                'LAUNCHER_FUNCTION_ARN': 'arn:aws:stuff:like:an/arn'
+    @classmethod
+    def setUpClass(cls):
+        env_vars = {
+            'DEBUG': 'true',
+            'AWS_DEFAULT_REGION': 'us-west-1',
+            'APP_NAME': 'launcher',
+            'SUB_DOMAIN': 'foo.bar',
+            'DYNAMODB_SERVERS_TABLE_NAME': 'servers-table',
+            'LAUNCHER_FUNCTION_ARN': 'arn:aws:stuff:like:an/arn'
         }
-        with patch.dict(os.environ, self.env_vars):
-            from config import config
-        
-        mock_resource.reset_mock(side_effect=True, return_value=True)
-        mock_client.reset_mock(side_effect=True, return_value=True)
+        os.environ.update(env_vars)
+        cls.build_resources()
+        cls.addClassCleanup(cls.destroy_resources)
+
+    @classmethod
+    def build_resources(cls):
+        import boto3
+
+        dynamodb = boto3.resource('dynamodb')
+        cls.table = dynamodb.create_table(
+            TableName='servers-table',
+            AttributeDefinitions=[{
+                'AttributeName': 'hostname',
+                'AttributeType': 'S'
+            }],
+            KeySchema=[{
+                'AttributeName': 'hostname',
+                'KeyType': 'HASH'
+            }],
+            BillingMode='PAY_PER_REQUEST'
+        )
+
+    @classmethod
+    def destroy_resources(cls):
+        cls.table.delete()

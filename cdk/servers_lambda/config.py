@@ -4,19 +4,18 @@ from datetime import timedelta
 
 
 class Config(dict):
-    pass
+    aws_region = os.environ['AWS_DEFAULT_REGION']
+    debug = os.environ.get('DEBUG', 'false').lower() == 'true'
+
+    def __init__(self):
+        self.app_name = os.getenv("APP_NAME", "servers")
+        self.sub_domain = os.environ['SUB_DOMAIN']
+        self.dynamodb_servers_table_name = os.environ['DYNAMODB_SERVERS_TABLE_NAME']
+        self.launcher_function_arn = os.environ['LAUNCHER_FUNCTION_ARN']
+        self.server_status_ttl = timedelta(seconds=30)
+        self.launcher_timeout = timedelta(minutes=15)
 
 
-config = Config({
-    'APP_NAME': os.getenv("APP_NAME", "servers"),
-    'SUB_DOMAIN': os.environ['SUB_DOMAIN'],
-    'DYNAMODB_SERVERS_TABLE_NAME': os.environ['DYNAMODB_SERVERS_TABLE_NAME'],
-    'LAUNCHER_FUNCTION_ARN': os.environ['LAUNCHER_FUNCTION_ARN'],
-    'SERVER_STATUS_TTL': timedelta(seconds=30),
-    'LAUNCHER_TIMEOUT': timedelta(minutes=15),
-    'DEBUG': True,
-})
-
-logger = logging.getLogger(config['APP_NAME'])
+logger = logging.getLogger()
 logging.basicConfig()
-logger.setLevel(logging.DEBUG if config['DEBUG'] else logging.INFO)
+logger.setLevel(logging.DEBUG if Config.debug else logging.INFO)

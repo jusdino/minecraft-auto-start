@@ -1,43 +1,45 @@
-from marshmallow import fields, post_load, pre_load, post_dump, Schema, EXCLUDE
+from marshmallow import pre_load, post_dump, Schema, EXCLUDE
+from marshmallow.fields import String, List, Integer, Nested
+from marshmallow.validate import OneOf
 
 
 class DescrExtraSchema(Schema):
-    color = fields.String()
-    text = fields.String()
+    color = String()
+    text = String()
 
 
 class DescriptionSchema(Schema):
-    text = fields.String(required=True, dump_default='Offline')
-    extra = fields.List(fields.Nested(DescrExtraSchema()))
+    text = String(required=True, dump_default='Offline')
+    extra = List(Nested(DescrExtraSchema()))
 
 
 class PlayersSchema(Schema):
-    max = fields.Integer(required=True, dump_default=0)
-    online = fields.Integer(required=True, dump_default=0)
+    max = Integer(required=True, dump_default=0)
+    online = Integer(required=True, dump_default=0)
 
 
 class VersionSchema(Schema):
-    name = fields.String(required=True, dump_default="N/A")
-    protocol = fields.String(required=True, dump_default="N/A")
+    name = String(required=True, dump_default="N/A")
+    protocol = String(required=True, dump_default="N/A")
 
 
 class ServerStatusSchema(Schema):
-    description = fields.Nested(
+    description = Nested(
         DescriptionSchema(),
         load_default=DescriptionSchema().dumps({}),
         dump_default=DescriptionSchema().dumps({})
     )
-    players = fields.Nested(
+    players = Nested(
         PlayersSchema(),
         load_default=PlayersSchema().dump({}),
         dump_default=PlayersSchema().dump({})
     )
-    version = fields.Nested(
+    version = Nested(
         VersionSchema(),
         load_default=VersionSchema().dump({}),
         dump_default=VersionSchema().dump({})
     )
-    favicon = fields.String(
+    favicon = String(
         load_default=None,
         dump_default=None,
         allow_none=True
@@ -48,16 +50,51 @@ class BasicServerSchema(Schema):
     class Meta:
         unknown = EXCLUDE
 
-    name = fields.String(required=True)
-    hostname = fields.String(required=False)
+    name = String(required=True)
+    hostname = String(required=False)
+
+
+class InstanceConfigSchema(Schema):
+    instance_type = String(
+        allow_none=False,
+        validate=OneOf(choices=[
+            't3.medium',
+            't3.large',
+            't3.xlarge',
+            't3.2xlarge'
+        ]),
+        load_default='t3.large'
+    )
+    volume_size = Integer(
+        strict=False,
+        allow_none=False,
+        load_default=20
+    )
+    memory_size = String(
+        allow_none=False,
+        load_default='6144m'
+    )
+    java_version = String(
+        allow_none=False,
+        load_default='17',
+        validate=OneOf(choices=[
+            '8',
+            '17'
+        ])
+    )
 
 
 class LaunchableServerSchema(BasicServerSchema):
-    status = fields.Nested(ServerStatusSchema())
-    status_time = fields.String(required=False)
-    launch_time = fields.String(required=False, allow_none=True)
-    launching = fields.String(dump_only=True)
-    version = fields.Integer(dump_default=0, load_default=0)
+    status = Nested(ServerStatusSchema())
+    status_time = String(required=False)
+    launch_time = String(required=False, allow_none=True)
+    launching = String(dump_only=True)
+    version = Integer(dump_default=0, load_default=0)
+    instance_configuration = Nested(
+        InstanceConfigSchema(),
+        allow_none=False,
+        load_default=InstanceConfigSchema().load({}),
+    )
 
     @pre_load
     def deserialize_status(self, data, **kwargs):

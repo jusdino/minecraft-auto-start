@@ -77,6 +77,7 @@ class LauncherTst(TestCase):
         # Terminate instances
         ec2 = boto3.resource('ec2')
         for instance in ec2.instances.all():
+            print(f'Terminating instance {instance.instance_id}')
             instance.terminate()
 
         # Clean up route53 records

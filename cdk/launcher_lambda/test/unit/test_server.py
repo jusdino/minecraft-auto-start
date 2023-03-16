@@ -20,6 +20,7 @@ class TestServer(LauncherTst):
         self.server.launch(
             instance_type='t3.small',
             volume_size=10,
-            memory_size='1024m'
+            memory_size='1024m',
+            java_version='8'
         )
         self.assertTrue(self.server.already_live())
