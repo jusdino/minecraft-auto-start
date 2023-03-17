@@ -20,7 +20,7 @@ class Config():
 
 
 logger = logging.getLogger()
-logging.basicConfig()
+# logging.basicConfig()
 if Config.debug:
     logger.setLevel(logging.DEBUG)
 else:

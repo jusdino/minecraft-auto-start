@@ -26,6 +26,7 @@ class Server():
             instance_type: str,
             volume_size: int,
             memory_size: str,
+            java_version: str
             ):
         if self.already_live():
             self.logger.info('%s is already live - skipping launch', self.server_name)
@@ -34,7 +35,8 @@ class Server():
         self._provision_instance(
             instance_type=instance_type,
             volume_size=volume_size,
-            memory_size=memory_size
+            memory_size=memory_size,
+            java_version=java_version
         )
 
     def already_live(self, live_states: List[str] = None) -> bool:
@@ -53,13 +55,13 @@ class Server():
         instances = tuple(x for x in ec2.instances.filter(
             Filters=[
                 {
-                    'Name': 'tag:name',
+                    'Name': 'tag:Name',
                     'Values': [
                         self.server_name,
                     ]
                 },
                 {
-                    'Name': 'tag:environment',
+                    'Name': 'tag:Environment',
                     'Values': [
                         self.config.environment_name,
                     ]
@@ -72,7 +74,7 @@ class Server():
         ).limit(1).all())
         return bool(instances)
 
-    def _render_user_data(self, memory_size: str):
+    def _render_user_data(self, memory_size: str, java_version: str):
         with open('resources/user_data.sh', 'r') as f:
             user_data = f.read()
         for k, v in {
@@ -81,7 +83,8 @@ class Server():
             '__SUB_DOMAIN__': self.config.sub_domain,
             '__HOSTED_ZONE_ID__': self.config.hosted_zone_id,
             '__AWS_REGION__': self.config.aws_region,
-            '__MEMORY__': memory_size
+            '__MEMORY__': memory_size,
+            '__JAVA_VERSION__': java_version
         }.items():
             user_data = user_data.replace(str(k), str(v))
         self.logger.debug('Final rendered user data: \n--------\n%s\n--------\n', user_data)
@@ -92,7 +95,7 @@ class Server():
         AWS provides latest ami ids in ssm parameters for our convenience
         """
         return ssm.get_parameter(
-            Name='/aws/service/ami-amazon-linux-latest/amzn-ami-hvm-x86_64-gp2'
+            Name='/aws/service/ami-amazon-linux-latest/amzn2-ami-minimal-hvm-x86_64-ebs'
         )['Parameter']['Value']
 
     def _provision_instance(
@@ -100,11 +103,12 @@ class Server():
             instance_type: str,
             volume_size: int,
             memory_size: str,
+            java_version: str
             ):
         image_id = self._get_image_id()
         tags = self.config.tags.copy()
         tags.append({
-            'Key': 'name',
+            'Key': 'Name',
             'Value': self.server_name
         })
         instance = ec2.create_instances(
@@ -112,9 +116,11 @@ class Server():
                 {
                     'DeviceName': '/dev/sdb',
                     'Ebs': {
+                        # Minimum 125 GB volume size for sc1/st1
                         'VolumeSize': volume_size,
                         'VolumeType': 'gp3',
-                        'DeleteOnTermination': True
+                        'DeleteOnTermination': True,
+                        # 'Throughput': 500
                     }
                 }
             ],
@@ -130,7 +136,10 @@ class Server():
             IamInstanceProfile={
                 'Arn': self.config.instance_profile_arn
             },
-            UserData=self._render_user_data(memory_size=memory_size),
+            UserData=self._render_user_data(
+                memory_size=memory_size,
+                java_version=java_version
+            ),
             InstanceInitiatedShutdownBehavior='terminate',
             TagSpecifications=[
                 {
@@ -148,7 +157,7 @@ class Server():
             TagSpecifications=[
                 {
                     'ResourceType': 'elastic-ip',
-                    'Tags': self.config.tags
+                    'Tags': tags
                 },
             ]
         )

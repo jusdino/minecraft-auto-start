@@ -1,3 +1,4 @@
+from aws_cdk.aws_logs import RetentionDays
 from constructs import Construct
 from aws_cdk import RemovalPolicy, CfnOutput
 from aws_cdk.aws_iam import Role, ServicePrincipal
@@ -24,6 +25,7 @@ class ServersUi(Construct):
             self, 'BucketDeployment',
             sources=[Source.asset('ui-static')],
             destination_bucket=asset_bucket,
+            log_retention=RetentionDays.ONE_MONTH,
             retain_on_delete=False
         )
         CfnOutput(self, 'BucketDomain', value=asset_bucket.bucket_website_domain_name)
@@ -34,7 +36,7 @@ class ServersUi(Construct):
         asset_bucket.grant_read(s3_integration_role)
         self.ui_resource = self._add_get_integration(rest_api, asset_bucket, s3_integration_role)
         self._add_item_integration(self.ui_resource, asset_bucket, s3_integration_role)
-    
+
     def _add_get_integration(self, rest_api: Resource, asset_bucket, s3_integration_role) -> Resource:
         """
         Add integration for /ui/
@@ -83,13 +85,15 @@ class ServersUi(Construct):
                         'method.response.header.Timestamp': True
                     }
                 ),
-                MethodResponse(status_code='400',
+                MethodResponse(
+                    status_code='400',
                     response_parameters={
                         'method.response.header.Content-Type': True,
                         'method.response.header.Content-Length': True
                     }
                 ),
-                MethodResponse(status_code='500',
+                MethodResponse(
+                    status_code='500',
                     response_parameters={
                         'method.response.header.Content-Type': True,
                         'method.response.header.Content-Length': True
@@ -153,13 +157,15 @@ class ServersUi(Construct):
                         'method.response.header.Timestamp': True
                     }
                 ),
-                MethodResponse(status_code='400',
+                MethodResponse(
+                    status_code='400',
                     response_parameters={
                         'method.response.header.Content-Type': True,
                         'method.response.header.Content-Length': True
                     }
                 ),
-                MethodResponse(status_code='500',
+                MethodResponse(
+                    status_code='500',
                     response_parameters={
                         'method.response.header.Content-Type': True,
                         'method.response.header.Content-Length': True

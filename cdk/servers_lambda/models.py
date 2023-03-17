@@ -9,21 +9,23 @@ from boto3.dynamodb.conditions import Attr
 from mcstatus import MinecraftServer
 
 from schema import BasicServerSchema, LaunchableServerSchema
-from config import config, logger
+from config import Config, logger
 
+
+config = Config()
 
 dynamodb = boto3.resource('dynamodb')
 lambda_ = boto3.client('lambda')
 
 
 class BasicServer():
-    table = dynamodb.Table(config['DYNAMODB_SERVERS_TABLE_NAME'])
+    table = dynamodb.Table(config.dynamodb_servers_table_name)
     schema = BasicServerSchema
 
     def __init__(self, **kwargs):
         self.data = dict(**kwargs)
         if not self.data.get('hostname', False):
-            self.data['hostname'] = f"{self.data['name']}.{config['SUB_DOMAIN']}"
+            self.data['hostname'] = f"{self.data['name']}.{config.sub_domain}"
 
     @classmethod
     def get_server_by_hostname(cls, hostname, consistent_read=False):
@@ -115,7 +117,7 @@ class LaunchableServer(BasicServer):
     def launching(self) -> bool:
         if self.launch_time is None:
             return False
-        return self.launch_time + config['LAUNCHER_TIMEOUT'] > datetime.utcnow()
+        return self.launch_time + config.launcher_timeout > datetime.utcnow()
 
     def update_status(self):
         from schema import ServerStatusSchema, LaunchableServerSchema
@@ -159,7 +161,7 @@ class LaunchableServer(BasicServer):
     def status_expired(self):
         if self.status_time is None:
             return True
-        return self.status_time + config['SERVER_STATUS_TTL'] < datetime.utcnow()
+        return self.status_time + config.server_status_ttl < datetime.utcnow()
 
     @property
     def version(self) -> int:
@@ -186,16 +188,15 @@ class LaunchableServer(BasicServer):
 
     def launch(self):
         logger.info('Invoking server launcher function')
+        payload = {
+            'server_name': self.name
+        }
+        if 'instance_configuration' in self.data:
+            payload['instance_configuration'] = self.data['instance_configuration']
         lambda_.invoke(
-            FunctionName=config['LAUNCHER_FUNCTION_ARN'],
+            FunctionName=config.launcher_function_arn,
             InvocationType='Event',
-            Payload=json.dumps({
-                'server_name': self.name,
-                # TODO: look the below values up from new db fields
-                'instance_type': 't3.large',
-                'volume_size': 20,
-                'memory_size': '6144m'
-            })
+            Payload=json.dumps(payload)
         )
         for i in range(3):
             try:

@@ -2,7 +2,7 @@ import json
 
 from marshmallow import ValidationError
 
-from config import logger, config
+from config import logger
 from models import BasicServer, LaunchableServer
 from schema import LaunchableServerSchema
 
@@ -20,7 +20,7 @@ def servers(event, context):
 
 
 def server(event, context):
-    logger.debug(f'Received server event: %s', json.dumps(event))
+    logger.debug('Received server event: %s', json.dumps(event))
     hostname = event['pathParameters']['hostname']
     if event['httpMethod'] == 'GET':
         return Servers.get(event, hostname)
