@@ -64,7 +64,8 @@ class TestLaunchableServer(BaseTestMAS):
             'instance_type': 't3.2xlarge',
             'volume_size': 12,
             'memory_size': '1234m',
-            'java_version': '8'
+            'java_version': '8',
+            's3_schematic_prefix': 'foo'
         }
         self.table.put_item(Item={
             'hostname': 'test.foo.bar',

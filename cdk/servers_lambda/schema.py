@@ -1,6 +1,6 @@
 from marshmallow import pre_load, post_dump, Schema, EXCLUDE
 from marshmallow.fields import String, List, Integer, Nested
-from marshmallow.validate import OneOf
+from marshmallow.validate import OneOf, ContainsNoneOf
 
 
 class DescrExtraSchema(Schema):
@@ -81,6 +81,11 @@ class InstanceConfigSchema(Schema):
             '8',
             '17'
         ])
+    )
+    s3_schematic_prefix = String(
+        allow_none=True,
+        load_default='common',
+        validate=ContainsNoneOf(['/', '.'])
     )
 
 
