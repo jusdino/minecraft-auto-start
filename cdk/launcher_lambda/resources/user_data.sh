@@ -86,6 +86,7 @@ JSON
 if [ ! -z '__S3_SCHEMATIC_PREFIX__' ]; then
   curl -fL https://github.com/kahing/goofys/releases/latest/download/goofys >/usr/bin/goofys && \
   chmod +x /usr/bin/goofys && \
+  mkdir -p "/data/${SERVER_NAME}/plugins/WorldEdit/schematics" && \
   goofys "${DATA_BUCKET}:__S3_SCHEMATIC_PREFIX__/schematics" "/data/${SERVER_NAME}/plugins/WorldEdit/schematics"
 fi
 
