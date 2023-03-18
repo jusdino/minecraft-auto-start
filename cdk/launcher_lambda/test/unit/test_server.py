@@ -21,6 +21,7 @@ class TestServer(LauncherTst):
             instance_type='t3.small',
             volume_size=10,
             memory_size='1024m',
-            java_version='8'
+            java_version='8',
+            s3_schematic_prefix=None
         )
         self.assertTrue(self.server.already_live())

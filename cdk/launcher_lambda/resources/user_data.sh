@@ -82,6 +82,14 @@ cat >"change-set.json" <<JSON
 
 JSON
 
+# Mount s3 as filesystem for WorldEdit schematics
+if [ ! -z '__S3_SCHEMATIC_PREFIX__' ]; then
+  curl -fL https://github.com/kahing/goofys/releases/latest/download/goofys >/usr/bin/goofys && \
+  chmod +x /usr/bin/goofys && \
+  goofys "${DATA_BUCKET}:__S3_SCHEMATIC_PREFIX__/schematics" "/data/${SERVER_NAME}/plugins/WorldEdit/schematics"
+fi
+
+# Set up server launch script
 cat >server.sh <<SCRIPT
 #!/bin/bash
 set -x

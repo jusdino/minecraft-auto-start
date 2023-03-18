@@ -1,6 +1,4 @@
 from decimal import Decimal
-import json
-from unittest.mock import patch
 from test import BaseTestMAS
 
 
@@ -15,7 +13,8 @@ class TestInstanceConfigSchema(BaseTestMAS):
                 'instance_type': 't3.large',
                 'volume_size': 20,
                 'memory_size': '6144m',
-                'java_version': '17'
+                'java_version': '17',
+                's3_schematic_prefix': 'common'
             },
             loaded
         )
@@ -28,7 +27,8 @@ class TestInstanceConfigSchema(BaseTestMAS):
             'instance_type': 't3.xlarge',
             'volume_size': 50,
             'memory_size': '10240m',
-            'java_version': '8'
+            'java_version': '8',
+            's3_schematic_prefix': 'foo'
         }
         loaded = schema.load(raw)
         self.assertEqual(
@@ -36,7 +36,8 @@ class TestInstanceConfigSchema(BaseTestMAS):
                 'instance_type': 't3.xlarge',
                 'volume_size': 50,
                 'memory_size': '10240m',
-                'java_version': '8'
+                'java_version': '8',
+                's3_schematic_prefix': 'foo'
             },
             loaded
         )
@@ -49,7 +50,8 @@ class TestInstanceConfigSchema(BaseTestMAS):
             'instance_type': 't3.xlarge',
             'volume_size': Decimal(50),
             'memory_size': '10240m',
-            'java_version': '8'
+            'java_version': '8',
+            's3_schematic_prefix': 'foo'
         }
         loaded = schema.load(raw)
         self.assertEqual(
@@ -57,7 +59,8 @@ class TestInstanceConfigSchema(BaseTestMAS):
                 'instance_type': 't3.xlarge',
                 'volume_size': 50,
                 'memory_size': '10240m',
-                'java_version': '8'
+                'java_version': '8',
+                's3_schematic_prefix': 'foo'
             },
             loaded
         )
