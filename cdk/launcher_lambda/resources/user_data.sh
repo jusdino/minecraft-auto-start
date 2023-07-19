@@ -105,8 +105,6 @@ export INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
   java -Xmx__MEMORY__ -Xms__MEMORY__ -jar server.jar
 )
 
-size="\$(du -sb "${SERVER_NAME}" | IFS=\t awk '{print \$1}')"
-tar -czf - "${SERVER_NAME}" | aws s3 cp --expected-size "\$size" - "s3://${DATA_BUCKET}/${SERVER_NAME}.tar.gz"
 
 # Move route53 to holding, release Elastic IP
 ADDRESS_DATA=\$(aws ec2 describe-addresses --filter "Name=instance-id,Values=\$INSTANCE_ID")
@@ -116,6 +114,10 @@ ALLOCATION_ID=\$(echo "\$ADDRESS_DATA" | jq -r '.Addresses[].AllocationId')
 aws route53 change-resource-record-sets --hosted-zone-id "\$HOSTED_ZONE_ID" --change-batch "file://${DATA_DIR}/change-set.json"
 aws ec2 disassociate-address --association-id "\$ASSOCIATION_ID"
 aws ec2 release-address --allocation-id "\$ALLOCATION_ID"
+
+# Copy data back to s3
+size="\$(du -sb "${SERVER_NAME}" | IFS=\t awk '{print \$1}')"
+tar -czf - "${SERVER_NAME}" | aws s3 cp --expected-size "\$size" - "s3://${DATA_BUCKET}/${SERVER_NAME}.tar.gz"
 
 echo "Shutting down in 10 seconds..."
 sleep 10

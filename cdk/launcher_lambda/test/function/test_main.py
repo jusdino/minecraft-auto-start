@@ -36,7 +36,7 @@ class TestMain(LauncherTst):
         self.assertEqual(0, len(instances))
 
         event = {
-            'server_name': 'foo.some.org',
+            'server_name': 'foo',
             'instance_configuration': {
                 'instance_type': 't3.xlarge',
                 'volume_size': 50,
@@ -84,3 +84,88 @@ class TestMain(LauncherTst):
         expected = event['instance_configuration']
         instance = instances[0]
         self.assertEqual(expected['instance_type'], instance.instance_type)
+        addresses = ec2.meta.client.describe_addresses()['Addresses']
+        # Make sure we've gracefully reused the 'orphaned' elastic ip address
+        self.assertEqual(1, len(addresses))
+        self.assertEqual(elastic_ip_address, instances[0].public_ip_address)
+        ec2.instances.all().terminate()
+
+    def test_main_reuse(self):
+        """
+        Test that a second run gracefully reuses an 'orphaned' ip address
+        """
+        import boto3
+        from main import main
+
+        ec2 = boto3.resource('ec2')
+        route53 = boto3.client('route53')
+        event = {
+            'server_name': 'foo',
+            'instance_configuration': {
+                'instance_type': 't3.xlarge',
+                'volume_size': 50,
+                'memory_size': '10240m',
+                'java_version': '17'
+            }
+        }
+        main(event, {})
+
+        instances = tuple(x for x in ec2.instances.filter(
+            Filters=[
+                {
+                    'Name': 'instance-state-name',
+                    'Values': ['running']
+                }
+            ]
+        ).all())
+        # Sanity checks that something hasn't gone weird in our test
+        self.assertEqual(1, len(instances))
+        orphaned_address = instances[0].public_ip_address
+        instances[0].terminate()
+
+        addresses = ec2.meta.client.describe_addresses()['Addresses']
+        self.assertEqual(1, len(addresses))
+        # These don't get cleaned up right away by ec2
+        for address in addresses:
+            ec2.meta.client.disassociate_address(
+                AssociationId=address['AssociationId']
+            )
+
+        # Because the ec2 instance is expected to clean up its own ip address and we haven't done
+        # that explicitly here, there is now an orphaned elastic ip address
+        main(event, {})
+
+        record_sets = tuple(
+            r for r in
+            route53.list_resource_record_sets(
+                HostedZoneId=os.environ['HOSTED_ZONE_ID']
+            )['ResourceRecordSets']
+            if r['Type'] == 'A'
+        )
+        self.assertEqual(1, len(record_sets))
+        self.assertEqual(1, len(tuple(r for r in record_sets if r['Type'] == 'A')))
+        self.assertEqual(1, len(tuple(x for x in ec2.instances.filter(
+            Filters=[
+                {
+                    'Name': 'instance-state-name',
+                    'Values': ['running']
+                }
+            ]
+        ).all())))
+        expected = event['instance_configuration']
+        instances = tuple(x for x in ec2.instances.filter(
+            Filters=[
+                {
+                    'Name': 'instance-state-name',
+                    'Values': ['running']
+                }
+            ]
+        ).all())
+        # Make sure we only have 1 running instance
+        self.assertEqual(1, len(instances))
+        instance = instances[0]
+        self.assertEqual(expected['instance_type'], instance.instance_type)
+        addresses = ec2.meta.client.describe_addresses()['Addresses']
+        # Make sure we've gracefully reused the 'orphaned' elastic ip address
+        self.assertEqual(1, len(addresses))
+        self.assertEqual(orphaned_address, instances[0].public_ip_address)

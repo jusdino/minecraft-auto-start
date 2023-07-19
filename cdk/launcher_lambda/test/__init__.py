@@ -80,6 +80,13 @@ class LauncherTst(TestCase):
             print(f'Terminating instance {instance.instance_id}')
             instance.terminate()
 
+        # Clean up ip addresses
+        addresses = boto3.client('ec2').describe_addresses().get('Addresses', [])
+        for address in addresses:
+            ec2.meta.client.release_address(
+                AllocationId=address['AllocationId']
+            )
+
         # Clean up route53 records
         route53 = boto3.client('route53')
         record_sets = route53.list_resource_record_sets(
