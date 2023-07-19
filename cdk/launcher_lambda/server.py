@@ -93,6 +93,36 @@ class Server():
             Name='/aws/service/ami-amazon-linux-latest/amzn2-ami-minimal-hvm-x86_64-ebs'
         )['Parameter']['Value']
 
+    def _get_address(self, tags: list) -> ec2.NetworkInterface:
+        """
+        Check for an available matching address and reuse it, else create a new one
+        """
+        addresses = ec2_client.describe_addresses(
+            Filters=[
+                {
+                    'Name': f'tag:{tag["Key"]}',
+                    'Values': [
+                        tag['Value']
+                    ]
+                } for tag in tags
+            ]
+        ).get('Addresses', [])
+        # If there are multiple matches for some reason, grab the first unassociated one and call it good enough
+        if addresses:
+            for address in addresses:
+                if address.get('AssociationId') is None:
+                    return addresses[0]
+        # If there are no unassociated matches, create a new one
+        return ec2_client.allocate_address(
+            Domain='vpc',
+            TagSpecifications=[
+                {
+                    'ResourceType': 'elastic-ip',
+                    'Tags': tags
+                },
+            ]
+        )
+
     def _provision_instance(
             self,
             instance_type: str,
@@ -149,15 +179,7 @@ class Server():
                 }
             ]
         )[0]
-        elastic_ip_data = ec2_client.allocate_address(
-            Domain='vpc',
-            TagSpecifications=[
-                {
-                    'ResourceType': 'elastic-ip',
-                    'Tags': tags
-                },
-            ]
-        )
+        elastic_ip_data = self._get_address(tags)
         # We can't associate the ip address until the instance is running
         # So we'll wait till it is running
         ec2_client.get_waiter('instance_running').wait(

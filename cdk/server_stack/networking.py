@@ -41,3 +41,9 @@ class Networking():
             connection=ec2.Port.udp(25565),
             description='Minecraft udp'
         )
+        # This is required for Simple Voice Chat, a common minecraft mod
+        self.security_group.add_ingress_rule(
+            peer=ec2.Peer.ipv4('0.0.0.0/0'),
+            connection=ec2.Port.udp(24454),
+            description='Minecraft Simple Voice Chat udp'
+        )
