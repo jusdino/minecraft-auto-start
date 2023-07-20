@@ -111,13 +111,13 @@ ADDRESS_DATA=\$(aws ec2 describe-addresses --filter "Name=instance-id,Values=\$I
 ASSOCIATION_ID=\$(echo "\$ADDRESS_DATA" | jq -r '.Addresses[].AssociationId')
 ALLOCATION_ID=\$(echo "\$ADDRESS_DATA" | jq -r '.Addresses[].AllocationId')
 
-aws route53 change-resource-record-sets --hosted-zone-id "\$HOSTED_ZONE_ID" --change-batch "file://${DATA_DIR}/change-set.json"
-aws ec2 disassociate-address --association-id "\$ASSOCIATION_ID"
-aws ec2 release-address --allocation-id "\$ALLOCATION_ID"
-
 # Copy data back to s3
 size="\$(du -sb "${SERVER_NAME}" | IFS=\t awk '{print \$1}')"
 tar -czf - "${SERVER_NAME}" | aws s3 cp --expected-size "\$size" - "s3://${DATA_BUCKET}/${SERVER_NAME}.tar.gz"
+
+aws route53 change-resource-record-sets --hosted-zone-id "\$HOSTED_ZONE_ID" --change-batch "file://${DATA_DIR}/change-set.json"
+aws ec2 disassociate-address --association-id "\$ASSOCIATION_ID"
+aws ec2 release-address --allocation-id "\$ALLOCATION_ID"
 
 echo "Shutting down in 10 seconds..."
 sleep 10
