@@ -1,6 +1,7 @@
 import logging
 import os
 from datetime import timedelta
+from aws_lambda_powertools import Logger
 
 
 class Config(dict):
@@ -16,6 +17,6 @@ class Config(dict):
         self.launcher_timeout = timedelta(minutes=15)
 
 
-logger = logging.getLogger()
+logger = Logger()
 logging.basicConfig()
 logger.setLevel(logging.DEBUG if Config.debug else logging.INFO)

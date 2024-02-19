@@ -139,6 +139,14 @@ class Server():
         })
         instance = ec2.create_instances(
             BlockDeviceMappings=[
+                # Root volume sometimes too small to install our dependencies, so we'll expand it
+                {
+                    'DeviceName': '/dev/xvda',
+                    'Ebs': {
+                        # Our minimal ami defaults to 2 GB
+                        'VolumeSize': 4
+                    }
+                },
                 {
                     'DeviceName': '/dev/sdb',
                     'Ebs': {

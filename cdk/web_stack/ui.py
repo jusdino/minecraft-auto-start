@@ -2,7 +2,7 @@ from aws_cdk.aws_logs import RetentionDays
 from constructs import Construct
 from aws_cdk import RemovalPolicy, CfnOutput
 from aws_cdk.aws_iam import Role, ServicePrincipal
-from aws_cdk.aws_s3 import Bucket
+from aws_cdk.aws_s3 import Bucket, BlockPublicAccess
 from aws_cdk.aws_s3_deployment import BucketDeployment, Source
 from aws_cdk.aws_apigateway import Resource, AwsIntegration, IntegrationOptions, IntegrationResponse, MethodResponse
 
@@ -18,6 +18,7 @@ class ServersUi(Construct):
             self, 'AssetBucket',
             website_index_document='index.html',
             public_read_access=True,
+            block_public_access=BlockPublicAccess.BLOCK_ACLS,
             removal_policy=RemovalPolicy.DESTROY,
             auto_delete_objects=True
         )

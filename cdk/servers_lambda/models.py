@@ -6,7 +6,7 @@ import typing
 
 import boto3
 from boto3.dynamodb.conditions import Attr
-from mcstatus import MinecraftServer
+from mcstatus import JavaServer
 
 from schema import BasicServerSchema, LaunchableServerSchema
 from config import Config, logger
@@ -34,7 +34,7 @@ class BasicServer():
         item = cls.table.get_item(Key={'hostname': hostname},
                                   ConsistentRead=consistent_read,
                                   ReturnConsumedCapacity='NONE')
-        logger.debug('Record: %s', item)
+        logger.debug('Record for %s: %s', hostname, item)
         try:
             return cls(**schema.load(item['Item']))
         except KeyError:
@@ -107,10 +107,10 @@ class LaunchableServer(BasicServer):
     @launch_time.setter
     def launch_time(self, value: datetime):
         if value is None:
-            logger.debug('Setting launch time to None')
+            logger.debug('Setting launch time to None', hostname=self.hostname)
             self.data['launch_time'] = None
             return
-        logger.debug('Setting launch time to %s', value)
+        logger.debug('Setting launch time to %s', value, hostname=self.hostname)
         self.data['launch_time'] = str(value.timestamp())
 
     @property
@@ -122,7 +122,7 @@ class LaunchableServer(BasicServer):
     def update_status(self):
         from schema import ServerStatusSchema, LaunchableServerSchema
 
-        logger.info('Updating MCServer %s', str(self))
+        logger.info('Updating MCServer %s', str(self), hostname=self.hostname)
 
         # Grab fresh data with consistent_read to DB
         item = self.table.get_item(Key={'hostname': self.hostname},
@@ -138,21 +138,31 @@ class LaunchableServer(BasicServer):
             return
 
         if not hasattr(self, '_server'):
-            self._server = MinecraftServer.lookup(self.hostname)
+            self._server = JavaServer.lookup(self.hostname)
         status_schema = ServerStatusSchema()
         try:
-            status = status_schema.dump(self._server.status())
+            status = self._server.status().raw
+            logger.debug('Server raw status: %s', status, hostname=self.hostname)
+            status = status_schema.dump(status)
             self.status = status
-        except (ConnectionRefusedError, BrokenPipeError, OSError):
+        except (ConnectionRefusedError, BrokenPipeError, OSError) as e:
+            logger.info('Could not contact server: %s', e, hostname=self.hostname)
             self.status = status_schema.dump({})
+        logger.debug('Updated status to: %s', self.status, hostname=self.hostname)
         launch_time = self.launch_time
         if self.data['status']['description']['text'] != 'Offline':
+            logger.info('Server is online', hostname=self.hostname)
             if launch_time is not None:
-                logger.info('Server live after %s seconds', (datetime.utcnow() - launch_time).total_seconds())
+                logger.info('Server live after %s seconds',
+                            (datetime.utcnow() - launch_time).total_seconds(),
+                            hostname=self.hostname)
             self.launch_time = None
         elif not self.launching:
+            logger.info('Server is offline', hostname=self.hostname)
             if launch_time is not None:
-                logger.info('Server not live after %s seconds', (datetime.utcnow() - launch_time).total_seconds())
+                logger.info('Server not live after %s seconds',
+                            (datetime.utcnow() - launch_time).total_seconds(),
+                            hostname=self.hostname)
             self.launch_time = None
         self.status_time = datetime.utcnow()
         self.save(safe=False)
@@ -175,11 +185,11 @@ class LaunchableServer(BasicServer):
         self.data['version'] = value
 
     def save(self, safe: bool = True):
-        logger.info('Saving record for %s, safe=%s', str(self), str(safe))
+        logger.info('Saving record for %s, safe=%s', str(self), str(safe), hostname=self.hostname)
         version = self.version
         self.version = version + 1
         data = self.schema.dump(self.data)
-        logger.info('Updating DB for %s', self.hostname)
+        logger.info('Updating DB', hostname=self.hostname)
         if version > 0 and safe:
             # Optimistic lock via condition - let fail if concurrent updates
             self.table.put_item(Item=data, ConditionExpression=Attr('version').eq(version))
@@ -187,7 +197,7 @@ class LaunchableServer(BasicServer):
             self.table.put_item(Item=data)
 
     def launch(self):
-        logger.info('Invoking server launcher function')
+        logger.info('Invoking server launcher function', hostname=self.hostname)
         payload = {
             'server_name': self.name
         }
@@ -204,7 +214,7 @@ class LaunchableServer(BasicServer):
                 self.save(safe=True)
                 break
             except dynamodb.meta.client.exceptions.ConditionalCheckFailedException:
-                logger.info('Concurrent write prevented on attempt %s', i)
+                logger.info('Concurrent write prevented on attempt %s', i, hostname=self.hostname)
                 sleep(randint(0, 2**i))
                 item = self.table.get_item(Key={'hostname': self.hostname},
                                            ConsistentRead=True,
