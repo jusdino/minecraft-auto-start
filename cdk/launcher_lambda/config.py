@@ -2,6 +2,8 @@ import os
 import json
 import logging
 
+from aws_lambda_powertools import Logger
+
 
 class Config():
     aws_region = os.environ['AWS_DEFAULT_REGION']
@@ -19,8 +21,9 @@ class Config():
         self.instance_profile_arn = os.environ['INSTANCE_PROFILE_ARN']
 
 
-logger = logging.getLogger()
-# logging.basicConfig()
+logger = Logger()
+logging.basicConfig()
+
 if Config.debug:
     logger.setLevel(logging.DEBUG)
 else:

@@ -39,7 +39,7 @@ class Launcher(Construct):
             entry='launcher_lambda',
             index='main.py',
             handler='main',
-            runtime=Runtime.PYTHON_3_8,
+            runtime=Runtime.PYTHON_3_12,
             timeout=Duration.seconds(30),
             log_retention=RetentionDays.ONE_MONTH,
             environment={

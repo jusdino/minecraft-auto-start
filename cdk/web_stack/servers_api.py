@@ -20,6 +20,7 @@ class ServersApi(Construct):
             **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
+        debug = 'true' if self.node.try_get_context('debug') is True else 'false'
         sub_domain = self.node.try_get_context('sub_domain')
 
         class ServerLambda(PythonFunction):
@@ -29,10 +30,11 @@ class ServersApi(Construct):
                     entry='servers_lambda',
                     index='views.py',
                     handler=handler,
-                    runtime=Runtime.PYTHON_3_8,
+                    runtime=Runtime.PYTHON_3_12,
                     log_retention=RetentionDays.ONE_MONTH,
                     timeout=Duration.seconds(30),
                     environment={
+                        'DEBUG': debug,
                         'SUB_DOMAIN': sub_domain,
                         'DYNAMODB_SERVERS_TABLE_NAME': persistent_stack.servers_table.table_name,
                         'LAUNCHER_FUNCTION_ARN': launcher.function.function_arn
@@ -51,7 +53,7 @@ class ServersApi(Construct):
             index='main.py',
             handler='main',
             log_retention=RetentionDays.ONE_MONTH,
-            runtime=Runtime.PYTHON_3_8,
+            runtime=Runtime.PYTHON_3_12,
             timeout=Duration.seconds(30),
             environment={
                 'USER_POOL_PARAMETER': persistent_stack.users.user_pool_parameter.parameter_name

@@ -1,4 +1,4 @@
-from marshmallow import pre_load, post_dump, Schema, EXCLUDE
+from marshmallow import pre_load, post_dump, Schema, EXCLUDE, pre_dump
 from marshmallow.fields import String, List, Integer, Nested
 from marshmallow.validate import OneOf, ContainsNoneOf
 
@@ -44,6 +44,32 @@ class ServerStatusSchema(Schema):
         dump_default=None,
         allow_none=True
     )
+
+    @pre_dump
+    def map_description(self, item, many, **kwargs):
+        """
+        Around v1.20.4, servers started returning 'description' as a string
+        rather than a dict:
+        ```
+        >>> nineteen.status().description
+        {'text': 'a frahm.space server!'}
+        >>> twenty.status().description
+        'a frahm.space server!'
+        >>>
+        ```
+
+        We'll reformat the new responses to fit what we expect
+        """
+        if isinstance(item, dict):
+            raw = item
+        else:
+            raw = item.raw
+        description = raw.get('description', {})
+        if not isinstance(description, dict):
+            raw['description'] = {'text': description}
+        if raw is not item:
+            item.raw = raw
+        return item
 
 
 class BasicServerSchema(Schema):
