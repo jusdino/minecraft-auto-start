@@ -1,17 +1,23 @@
+# python files
 *.pyc
 venv/*
+.python-version
+
+# IDE files
 *.iml
 .idea/*
 .vscode/*
 .env
-certs/*
-*.pem
-*.pem.pub
+
+# Terraform files
 .terraform
 .terraform*
-.python-version
+
+# Node files
 package-lock.json
-cdk.context.json
-*/ui-static/*
 */node_modules/*
+*/ui-static/*
 .node-version
+
+# CDK files
+cdk.context.json

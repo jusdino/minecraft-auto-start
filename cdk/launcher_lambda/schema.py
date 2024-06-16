@@ -28,7 +28,9 @@ class InstanceConfigSchema(Schema):
         required=True,
         validate=OneOf(choices=[
             '8',
-            '17'
+            '17',
+            '21',
+            '22'
         ])
     )
     s3_schematic_prefix = String(
