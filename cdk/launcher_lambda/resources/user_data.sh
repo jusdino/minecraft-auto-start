@@ -57,6 +57,10 @@ if [ __JAVA_VERSION__ -eq '8' ]; then
   yum install -y java-1.8.0-amazon-corretto
 elif [ __JAVA_VERSION__ -eq '17' ]; then
   yum install -y java-17-amazon-corretto
+elif [ __JAVA_VERSION__ -eq '21' ]; then
+  yum install -y java-21-amazon-corretto-devel
+elif [ __JAVA_VERSION__ -eq '22' ]; then
+  yum install -y java-22-amazon-corretto-devel
 fi
 
 cd "${DATA_DIR}"
