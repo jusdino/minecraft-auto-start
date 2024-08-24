@@ -8,8 +8,11 @@ from .users import Users
 
 
 class PersistentStack(Stack):
+    """
+    The Stack housing data and resources that are intended to be more long-lived.
+    """
 
-    def __init__(self, scope: Construct, construct_id: str, api_domain_name: str, sub_domain: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, *, api_domain_name: str, sub_domain: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
         environment = self.node.try_get_context('environment')
         # Only set removal policies to RETAIN for prod

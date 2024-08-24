@@ -8,6 +8,9 @@ from aws_cdk.aws_ssm import StringParameter
 
 
 class Users(Construct):
+    """
+    User management resources
+    """
 
     def __init__(self, scope: Construct, construct_id: str, domain_name: str, removal: RemovalPolicy, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)

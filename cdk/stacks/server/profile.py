@@ -2,8 +2,8 @@ from aws_cdk import Stack
 from aws_cdk.aws_iam import Role, ServicePrincipal, PolicyDocument, PolicyStatement, Effect, CfnInstanceProfile
 from constructs import Construct
 
-from persistent_stack import PersistentStack
-from server_stack import Networking
+from stacks.persistent import PersistentStack
+from stacks.server.networking import Networking
 
 
 class Profile(Construct):

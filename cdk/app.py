@@ -2,12 +2,15 @@
 
 from aws_cdk import App, Environment
 
-from persistent_stack import PersistentStack
-from server_stack import ServerStack
-from web_stack import WebStack
+from stacks.persistent import PersistentStack
+from stacks.server import ServerStack
+from stacks.web import WebStack
 
 
 class MASApp(App):
+    """
+    Minecraft-Auto-Start CDK App
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         env = Environment(

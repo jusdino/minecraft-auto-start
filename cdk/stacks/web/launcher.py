@@ -7,13 +7,13 @@ from aws_cdk.aws_logs import RetentionDays
 from constructs import Construct
 from aws_cdk.aws_iam import PolicyStatement, Effect
 
-from persistent_stack import PersistentStack
-from server_stack import ServerStack
+from stacks.persistent import PersistentStack
+from stacks.server import ServerStack
 
 
 class Launcher(Construct):
     """
-    Just look up existing resources until we migrate them to CDK
+    Function and permissions to launch a Minecraft server on EC2.
     """
 
     def __init__(self, scope: Construct, construct_id: str, *,
@@ -36,7 +36,7 @@ class Launcher(Construct):
         ]
         self.function = PythonFunction(
             self, 'LauncherFunction',
-            entry='launcher_lambda',
+            entry='lambdas/launcher',
             index='main.py',
             handler='main',
             runtime=Runtime.PYTHON_3_12,

@@ -6,7 +6,7 @@ from aws_cdk.aws_lambda_python_alpha import PythonFunction
 from aws_cdk.aws_apigateway import Resource, LambdaIntegration, MethodOptions, \
     AuthorizationType, CognitoUserPoolsAuthorizer
 
-from persistent_stack import PersistentStack
+from stacks.persistent import PersistentStack
 
 
 class ServersApi(Construct):
@@ -27,7 +27,7 @@ class ServersApi(Construct):
             def __init__(self, scope, construct_id, handler: str):
                 super().__init__(
                     scope, construct_id,
-                    entry='servers_lambda',
+                    entry='lambdas/servers',
                     index='views.py',
                     handler=handler,
                     runtime=Runtime.PYTHON_3_12,
@@ -49,7 +49,7 @@ class ServersApi(Construct):
 
         user_pool_parameter_lambda = PythonFunction(
             self, 'UserPoolParameterLambda',
-            entry='parameter_lambda',
+            entry='lambdas/parameter',
             index='main.py',
             handler='main',
             log_retention=RetentionDays.ONE_MONTH,

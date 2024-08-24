@@ -1,8 +1,8 @@
 from constructs import Construct
 from aws_cdk import Stack
 
-from persistent_stack import PersistentStack
-from server_stack import ServerStack
+from stacks.persistent import PersistentStack
+from stacks.server import ServerStack
 from .api import Api
 from .servers_api import ServersApi
 from .ui import ServersUi
