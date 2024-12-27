@@ -1,35 +1,41 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../auth.service';
 
 @Component({
-	selector: 'login',
-	templateUrl: './login.component.html',
-	styleUrls: ['./login.component.css']
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+  styleUrl: './login.component.css'
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
 
-	constructor(
-		private router: Router, 
-		public auth: AuthService,
-	) {}
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private authService: AuthService
+  ) {}
 
-	onLogin() {
-		this.auth.login().subscribe(success => {
-			if (success === true) {
-				this.auth.authContext.check_authenticated();
-			}
-			console.log('login component recieved login success: ' + success);
-		})
-	}
+  ngOnInit() {
+    this.handleAuthCodeCallback();
+  }
 
-	onNewPassword() {
-		console.log('onNewPassword()');
-		this.auth.newPassword().subscribe(success => {
-			if (success === true) {
-				this.auth.authContext.check_authenticated();
-			}
-			console.log('login component recieved new password success: ' + success);
-		})
-	}
+  handleAuthCodeCallback() {
+    console.log('Handling auth code callback');
+    this.route.queryParams.subscribe(params => {
+      const code = params['code'];
+      console.log('Code:', code);
+      if (code) {
+        this.authService.getTokensFromCode(code).subscribe({
+          next: tokens => {
+            console.log('Tokens:', tokens);
+            this.authService.setTokens(tokens);
+            this.router.navigate(['/']);
+          },
+          error: error => {
+            console.error('Error getting tokens from code:', error);
+          }
+        });
+      }
+    });
+  }
 }

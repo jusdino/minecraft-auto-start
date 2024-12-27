@@ -1,6 +1,4 @@
-export class MCVersion {
-  constructor(
-    name: string,
-    protocol: string
-  ) {}
+export interface MCVersion {
+  name: string;
+  protocol: string | number;
 }

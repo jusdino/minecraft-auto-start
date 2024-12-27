@@ -18,6 +18,6 @@ class ServerStack(Stack):
         self.profile = Profile(self, 'ServerProfile', persistent_stack=persistent_stack, networking=self.networking)
         self.key_pair = ec2.CfnKeyPair(
             self, 'KeyPair',
-            key_name=f'mas-{environment_name}-2',
+            key_name=f'mas-{environment_name}',
             public_key_material=self.node.try_get_context('public_key')
         )

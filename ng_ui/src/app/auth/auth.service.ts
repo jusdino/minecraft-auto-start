@@ -1,99 +1,115 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, Observer, BehaviorSubject, of } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
-import { AuthContext } from './models/auth-context';
-import { ICognitoUserPoolData, CognitoUserPool, AuthenticationDetails, CognitoUser } from 'amazon-cognito-identity-js';
-import { NotifierService } from 'angular-notifier';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable, timer } from 'rxjs';
+import awsconfig from '../../aws-export';
 
 @Injectable({
-	providedIn: 'root'
+  providedIn: 'root'
 })
 export class AuthService {
-	public loginCredentials: any = {
-		Username: '',
-		Password: ''
-	};
-	public authContext: AuthContext = new AuthContext();
-	public loginChallenge: BehaviorSubject<string> = new BehaviorSubject('login');
-	public loginChallenge$: Observable<string> = this.loginChallenge.asObservable();
-	public newPasswordCredentials: any = {
-		'Password1': '',
-		'Password2': ''
-	}
-	public challengeData: any;
-	private userPool: CognitoUserPool;
-    private readonly notifier: NotifierService
+  constructor(
+    private http: HttpClient
+  ) {
+    timer(0, 10000).subscribe(_ => this.checkAuthenticated());
+  }
 
-	constructor(
-		private http: HttpClient,
-		notifierService: NotifierService
-	) {
-		this.notifier = notifierService;
-		this.http.get<ICognitoUserPoolData>('../api/user_pool').pipe(
-			tap(pool_data => {
-				console.log('Received user_pool data');
-				this.userPool = new CognitoUserPool(pool_data);
-			}),
-			catchError(err => {
-				console.log(err);
-				return of(null);
-			})
-		).subscribe();
-	}
+  public checkAuthenticated() {
+    console.log('Checking authentication');
+    const expiresAtString = localStorage.getItem('expiresAt')
+    if (expiresAtString != null) {
+      const expiresAt = Date.parse(expiresAtString);
+      const now = Date.now();
+      const isAuthenticated = expiresAt > now;
+      if (isAuthenticated) {
+        console.log('User is authenticated');
+      }
+      const refreshAtString = localStorage.getItem('refreshAt');
+      if (refreshAtString != null) {
+        const refreshAt = Date.parse(refreshAtString);
+        if (refreshAt < now) {
+          console.log('Refreshing tokens');
+          this.refreshTokens();
+        }
+      }
+      return isAuthenticated;
+    }
+    return false;
+  }
 
-	login(): Observable<boolean> {
-		let notifier = this.notifier;
-		const authService = this;
-		const userData = {
-			Username: this.loginCredentials.Username,
-			Pool: this.userPool
-		};
-		const authDetails = new AuthenticationDetails(this.loginCredentials);
-		const cognitoUser = new CognitoUser(userData);
-		return new Observable((observer: Observer<boolean>) => {
-			cognitoUser.authenticateUser(authDetails, {
-				onSuccess: function(result) {
-					authService.authContext.user = cognitoUser;
-					authService.authContext.session = result;
-					console.log("Login successful");
-					observer.next(true);
-				},
-				onFailure: function (err) {
-					console.log(err.message);
-					notifier.notify('warning', err.message);
-					observer.next(false);
-				},
-				newPasswordRequired: function(userAttributes, requiredAttributes) {
-					authService.authContext.user = cognitoUser;
-					authService.challengeData = {
-						userAttributes: userAttributes
-					}
-					notifier.notify('info', 'Time to change your password!');
-					authService.loginChallenge.next('newpassword');
-				}
-			});
-		});
-	}
-	
-	public newPassword(): Observable<boolean> {
-		const notifier = this.notifier;
-		const auth = this;
-		return new Observable((observer: Observer<boolean>) => {
-			this.authContext.user.completeNewPasswordChallenge(this.newPasswordCredentials.Password1, {}, {
-				onSuccess: function(result) {
-					console.log(this);
-					auth.authContext.session = result;
-					console.log('password changed');
-					notifier.notify('success', 'Password changed!');
-					observer.next(true);
-				},
-				onFailure: function (err) {
-					console.log(err);
-					notifier.notify('warning', err.message);
-					observer.next(false);
-				}
-			});
-		});
-	}
+  public getIdToken(): string | null {
+    return localStorage.getItem('idToken');
+  }
+  getLoginUrl(): string {
+    const loginResponseType = 'code';
+    const loginUriQuery = [
+      `?client_id=${awsconfig.awsUserPoolWebClientId}`,
+      `&response_type=${loginResponseType}`,
+      `&scope=${encodeURIComponent(awsconfig.oauth.scope.join(' '))}`,
+      `&redirect_uri=${encodeURIComponent(awsconfig.oauth.redirectSignIn)}`,
+    ].join('');
+    const loginUri = `${awsconfig.oauth.domain}/oauth2/authorize${loginUriQuery}`;
+
+    return loginUri;
+  }
+
+  getTokensFromCode(code: string): Observable<any> {
+    const body = new URLSearchParams();
+    body.set('grant_type', 'authorization_code');
+    body.set('client_id', awsconfig.awsUserPoolWebClientId);
+    body.set('code', code);
+    body.set('redirect_uri', awsconfig.oauth.redirectSignIn);
+
+    const options = {
+      headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    };
+
+    return this.http.post<any>(`${awsconfig.oauth.domain}/oauth2/token`, body.toString(), options);
+  }
+
+  private refreshTokens() {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (refreshToken) {
+      const options = {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      };
+  
+      const body = new URLSearchParams();
+      body.set('grant_type', 'refresh_token');
+      body.set('client_id', awsconfig.awsUserPoolWebClientId);
+      body.set('refresh_token', refreshToken);
+      body.set('redirect_uri', awsconfig.oauth.redirectSignIn);
+  
+    this.http.post<any>(`${awsconfig.oauth.domain}/oauth2/token`, body.toString(), options)
+      .subscribe({
+        next: (response: any) => {
+          this.setTokens(response);
+        },
+        error: (error) => {
+          console.error('Error refreshing tokens:', error);
+          this.clearTokens();
+          window.location.replace(this.getLoginUrl());
+        }
+      });
+    }
+  }
+
+  setTokens(tokens: any) {
+    localStorage.setItem('idToken', tokens.id_token);
+    localStorage.setItem('accessToken', tokens.access_token);
+    localStorage.setItem('refreshToken', tokens.refresh_token);
+    const expiresAt: Date = new Date(Date.now() + (tokens.expires_in * 1000));
+    // 90% of the TTL
+    const refreshAt: Date = new Date(Date.now() + (tokens.expires_in * 900));
+    localStorage.setItem('expiresAt', expiresAt.toString());
+    console.log('Refresh at', refreshAt);
+    localStorage.setItem('refreshAt', refreshAt.toString());
+  }
+
+  clearTokens() {
+  localStorage.clear();
+  }
 }

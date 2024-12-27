@@ -3,26 +3,19 @@ import os
 import uuid
 from unittest import TestCase
 
-import moto
+import boto3
+from moto import mock_aws
 
 
-mock_iam = moto.mock_iam()
-mock_ec2 = moto.mock_ec2()
-mock_ssm = moto.mock_ssm()
-mock_route53 = moto.mock_route53()
-
-mock_iam.start()
-mock_ec2.start()
-mock_ssm.start()
-mock_route53.start()
+route53 = boto3.client('route53')
 
 
+@mock_aws
 class LauncherTst(TestCase):
     """
     Base class for setup common across all test cases
     """
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
         lambda_env = {
             'DEBUG': 'true',
             'ENV': 'test-env',
@@ -40,40 +33,31 @@ class LauncherTst(TestCase):
             'INSTANCE_PROFILE_ARN': 'arn:aws:iam::000000000000:instance-profile/foo-profile'
         }
         os.environ.update(lambda_env)
+        self.build_resources()
+
+    def build_resources(self):
         # Grab mock indentifiers from moto
-        import boto3
         ec2 = boto3.resource('ec2')
-        security_group = tuple(x for x in ec2.security_groups.limit(1).all())[0]
-        subnet = tuple(x for x in ec2.subnets.limit(1).all())[0]
+        security_group = tuple(ec2.security_groups.limit(1).all())[0]
+        subnet = tuple(ec2.subnets.limit(1).all())[0]
         os.environ['SECURITY_GROUP_ID'] = security_group.group_id
         os.environ['SUBNET_ID'] = subnet.subnet_id
-        cls.build_resources()
-        cls.addClassCleanup(cls.destroy_resources)
 
-    @classmethod
-    def build_resources(cls):
-        import boto3
-
-        route53 = boto3.client('route53')
-        resp = route53.create_hosted_zone(Name='some.org', CallerReference=uuid.uuid4().hex)
-        os.environ['HOSTED_ZONE_ID'] = resp['HostedZone']['Id']
         iam = boto3.resource('iam')
-        cls.instance_profile = iam.create_instance_profile(
+        self.instance_profile = iam.create_instance_profile(
             InstanceProfileName='foo-profile'
         )
-        os.environ['INSTANCE_PROFILE_ARN'] = cls.instance_profile.arn
-        os.environ['INSTANCE_PROFILE_NAME'] = cls.instance_profile.instance_profile_name
+        os.environ['INSTANCE_PROFILE_ARN'] = self.instance_profile.arn
+        os.environ['INSTANCE_PROFILE_NAME'] = self.instance_profile.instance_profile_name
 
-    @classmethod
-    def destroy_resources(cls):
-        import boto3
-
-        route53 = boto3.client('route53')
-        route53.delete_hosted_zone(Id=os.environ['HOSTED_ZONE_ID'])
-        cls.instance_profile.delete()
+        resp = route53.create_hosted_zone(Name='some.org', CallerReference=uuid.uuid4().hex)
+        os.environ['HOSTED_ZONE_ID'] = resp['HostedZone']['Id']
 
     def tearDown(self) -> None:
-        import boto3
+        super().tearDown()
+        self.destroy_resources()
+
+    def destroy_resources(self):
         # Terminate instances
         ec2 = boto3.resource('ec2')
         for instance in ec2.instances.all():
@@ -81,14 +65,14 @@ class LauncherTst(TestCase):
             instance.terminate()
 
         # Clean up ip addresses
-        addresses = boto3.client('ec2').describe_addresses().get('Addresses', [])
+        addresses = ec2.meta.client.describe_addresses().get('Addresses', [])
         for address in addresses:
             ec2.meta.client.release_address(
                 AllocationId=address['AllocationId']
             )
+        self.instance_profile.delete()
 
         # Clean up route53 records
-        route53 = boto3.client('route53')
         record_sets = route53.list_resource_record_sets(
             HostedZoneId=os.environ['HOSTED_ZONE_ID']
         )['ResourceRecordSets']
@@ -113,3 +97,4 @@ class LauncherTst(TestCase):
                 HostedZoneId=os.environ['HOSTED_ZONE_ID'],
                 ChangeBatch=change_set
             )
+        route53.delete_hosted_zone(Id=os.environ['HOSTED_ZONE_ID'])

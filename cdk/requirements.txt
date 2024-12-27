@@ -16,7 +16,7 @@ aws-cdk-asset-node-proxy-agent-v6==2.0.3
     # via aws-cdk-lib
 aws-cdk-aws-lambda-python-alpha==2.154.1a0
     # via -r requirements.in
-aws-cdk-cloud-assembly-schema==36.0.15
+aws-cdk-cloud-assembly-schema==36.0.16
     # via aws-cdk-lib
 aws-cdk-lib==2.154.1
     # via

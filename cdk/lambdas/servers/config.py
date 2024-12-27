@@ -20,3 +20,5 @@ class Config(dict):
 logger = Logger()
 logging.basicConfig()
 logger.setLevel(logging.DEBUG if Config.debug else logging.INFO)
+
+config = Config()

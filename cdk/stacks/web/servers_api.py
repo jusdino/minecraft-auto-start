@@ -28,7 +28,7 @@ class ServersApi(Construct):
                 super().__init__(
                     scope, construct_id,
                     entry='lambdas/servers',
-                    index='views.py',
+                    index='handlers.py',
                     handler=handler,
                     runtime=Runtime.PYTHON_3_12,
                     log_retention=RetentionDays.ONE_MONTH,
@@ -43,9 +43,6 @@ class ServersApi(Construct):
                 persistent_stack.servers_table.grant_read_write_data(self)
                 persistent_stack.encryption_key.grant_encrypt_decrypt(self)
                 launcher.function.grant_invoke(self)
-
-        servers_lambda = ServerLambda(self, 'ServersLambda', handler='servers')
-        server_lambda = ServerLambda(self, 'ServerLambda', handler='server')
 
         user_pool_parameter_lambda = PythonFunction(
             self, 'UserPoolParameterLambda',
@@ -70,28 +67,41 @@ class ServersApi(Construct):
         api = resource.add_resource('api')
 
         # /api/user_pool
-        parameter = api.add_resource(
-            'user_pool',
-            default_integration=LambdaIntegration(user_pool_parameter_lambda),
-            default_method_options=MethodOptions(authorization_type=AuthorizationType.NONE)
+        parameter = api.add_resource('user_pool')
+        parameter.add_method(
+            'GET',
+            integration=LambdaIntegration(user_pool_parameter_lambda),
+            authorization_type=AuthorizationType.NONE
         )
-        parameter.add_method('GET')
 
-        # /api/servers
-        servers = api.add_resource(
-            'servers',
-            default_integration=LambdaIntegration(servers_lambda),
-            default_method_options=MethodOptions(authorizer=user_pool_authorizer)
+        # GET /api/servers
+        servers = api.add_resource('servers')
+        servers.add_method(
+            'GET',
+            integration=LambdaIntegration(ServerLambda(
+                self, 'GetServersFunction',
+                handler='get_servers'
+            )),
+            authorizer=user_pool_authorizer
         )
-        servers.add_method('GET')
-        servers.add_method('PUT')
 
-        # /api/servers/{hostname}
-        server = servers.add_resource(
-            '{hostname}',
-            default_integration=LambdaIntegration(server_lambda),
-            default_method_options=MethodOptions(authorizer=user_pool_authorizer)
+        # GET /api/servers/{hostname}
+        server = servers.add_resource('{hostname}')
+        server.add_method(
+            'GET',
+            integration=LambdaIntegration(ServerLambda(
+                self, 'GetOneServerFunction',
+                handler='get_one_server'
+            )),
+            authorizer=user_pool_authorizer
         )
-        server.add_method('GET')
-        server.add_method('PUT')
-        server.add_method('POST')
+
+        # PUT /api/servers/{hostname}/launch
+        server.add_resource('launch').add_method(
+            'PUT',
+            integration=LambdaIntegration(ServerLambda(
+                self, 'LaunchServerFunction',
+                handler='launch_server'
+            )),
+            authorizer=user_pool_authorizer
+        )

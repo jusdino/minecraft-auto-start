@@ -14,7 +14,7 @@ class PersistentStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, *, api_domain_name: str, sub_domain: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
-        environment = self.node.try_get_context('environment')
+        environment = self.node.get_context('environment')
         # Only set removal policies to RETAIN for prod
         removal = RemovalPolicy.RETAIN if environment == 'prod' else RemovalPolicy.DESTROY
 

@@ -3,7 +3,7 @@ import textwrap
 
 from constructs import Construct
 from aws_cdk import RemovalPolicy, CfnOutput, Duration
-from aws_cdk.aws_cognito import UserPool, UserInvitationConfig, UserPoolClient
+from aws_cdk.aws_cognito import UserPool, UserInvitationConfig, OAuthSettings, OAuthFlows, CognitoDomainOptions
 from aws_cdk.aws_ssm import StringParameter
 
 
@@ -27,11 +27,27 @@ class Users(Construct):
             )
         )
         CfnOutput(self, 'UserPoolId', value=self.user_pool.user_pool_id)
-        self.user_client = UserPoolClient(
-            self, 'UsersClient',
-            user_pool=self.user_pool,
+        self.user_client = self.user_pool.add_client(
+            'UsersClient',
+            o_auth=OAuthSettings(
+                flows=OAuthFlows(
+                    authorization_code_grant=True
+                ),
+                callback_urls=[
+                    f'https://{domain_name}/ui/login',
+                    'http://localhost:4200/ui/login'
+                ],
+                logout_urls=[f'https://{domain_name}/ui/login']
+            ),
             access_token_validity=Duration.minutes(60),
+            refresh_token_validity=Duration.hours(12),
             generate_secret=False
+        )
+        self.user_pool.add_domain(
+            'UsersDomain',
+            cognito_domain=CognitoDomainOptions(
+                domain_prefix=f'mas-{domain_name.replace(".", "-")}-users'
+            )
         )
         self.user_pool_parameter = StringParameter(
             self, 'UserPoolConfig',

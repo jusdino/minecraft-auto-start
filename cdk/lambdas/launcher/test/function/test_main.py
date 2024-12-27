@@ -1,8 +1,10 @@
 import os
 
+from moto import mock_aws
 from test import LauncherTst
 
 
+@mock_aws
 class TestMain(LauncherTst):
     def test_main(self):
         """

@@ -1,6 +1,9 @@
+from moto import mock_aws
+
 from test import LauncherTst
 
 
+@mock_aws
 class TestServer(LauncherTst):
     def setUp(self):
         super().setUp()

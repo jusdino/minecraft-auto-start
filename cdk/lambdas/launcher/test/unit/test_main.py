@@ -1,9 +1,11 @@
 from unittest.mock import patch
 from marshmallow import ValidationError
 
+from moto import mock_aws
 from test import LauncherTst
 
 
+@mock_aws
 @patch('main.Server', autospec=True)
 class TestMain(LauncherTst):
     def test_instance_config(self, mock_server):

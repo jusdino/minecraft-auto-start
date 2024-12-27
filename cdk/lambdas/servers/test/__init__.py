@@ -1,39 +1,38 @@
 import os
-from unittest import TestCase, main
-from unittest.mock import patch
+from unittest import TestCase
+from unittest.mock import MagicMock
 
-import moto
-
-# Just mock these globally once and for all
-mock_dynamo = moto.mock_dynamodb()
-mock_dynamo.start()
+from aws_lambda_powertools.utilities.typing import LambdaContext
+from moto import mock_aws
 
 
+@mock_aws
 class BaseTestMAS(TestCase):
     """
     Mock out required env vars then import config so our unit tests
     don't have any particular environmental variable dependencies.
     """
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
+        super().setUp()
         env_vars = {
             'DEBUG': 'true',
             'AWS_DEFAULT_REGION': 'us-west-1',
             'APP_NAME': 'launcher',
-            'SUB_DOMAIN': 'foo.bar',
+            'SUB_DOMAIN': 'example.org',
             'DYNAMODB_SERVERS_TABLE_NAME': 'servers-table',
             'LAUNCHER_FUNCTION_ARN': 'arn:aws:stuff:like:an/arn'
         }
         os.environ.update(env_vars)
-        cls.build_resources()
-        cls.addClassCleanup(cls.destroy_resources)
+        self.build_resources()
+        self.addCleanup(self.destroy_resources)
 
-    @classmethod
-    def build_resources(cls):
+        self.mock_context = MagicMock(spec=LambdaContext)
+
+    def build_resources(self):
         import boto3
 
         dynamodb = boto3.resource('dynamodb')
-        cls.table = dynamodb.create_table(
+        self.table = dynamodb.create_table(
             TableName='servers-table',
             AttributeDefinitions=[{
                 'AttributeName': 'hostname',
@@ -46,6 +45,5 @@ class BaseTestMAS(TestCase):
             BillingMode='PAY_PER_REQUEST'
         )
 
-    @classmethod
-    def destroy_resources(cls):
-        cls.table.delete()
+    def destroy_resources(self):
+        self.table.delete()
