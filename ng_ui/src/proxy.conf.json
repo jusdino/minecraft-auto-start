@@ -1,0 +1,7 @@
+{
+    "/api": {
+        "target": "https://start.dev.frahm.space",
+        "secure": false,
+        "changeOrigin": true
+    }
+}

@@ -1,13 +1,18 @@
-import { MCStatus } from './mcstatus';
+import { MCPlayers } from './mcplayers';
+import { MCVersion } from './mcversion';
 
-export class MCServer {
-  constructor(
-    public launch_time?: number,
-    public launch_pct?: number,
-    public name?: string,
-    public hostname?: string,
-    public status?: MCStatus,
-    public status_time?: string,
-    public version?: number
-  ) {}
+export interface MCServer {
+    name: string;
+    hostname: string;
+    description: string;
+    online?: boolean;
+    launching?: boolean;
+    mc_version: MCVersion
+    favicon?: string | null;
+    players: MCPlayers;
+    status_time: number;
+    launch_time: number;
+    launch_pct?: number;
+    version?: number;
+    instance_configuration?: any;
 }

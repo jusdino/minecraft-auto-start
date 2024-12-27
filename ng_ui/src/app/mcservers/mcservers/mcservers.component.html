@@ -1,30 +1,46 @@
-<h2>Minecraft Servers</h2>
-<div *ngFor="let server of mcServers.servers$ | async" class="card bg-light border-dark mb-3">
-  <mat-card>
-    <mat-card-subtitle>{{server.hostname}}</mat-card-subtitle>
-    <mat-card-title>{{server.name}}</mat-card-title>
-    <mat-card-content>
-      <div *ngIf="server.status && server.status.description.text != 'Offline'; else offlineBlock">
-        <p>{{server.status.version.name}}</p>
-        <img style="max-width: 100px" src="{{server.status.favicon}}" alt="X">
-        <p *ngIf="server.status.description.text != ''">{{server.status.description.text}}</p>
-        <div *ngFor="let ex of server.status.description.extra">{{ex.text}}</div>
-        <p class="font-italic">{{server.status.players.online}} of {{server.status.players.max}} players online</p>
-      </div>
-      <ng-template #offlineBlock>
-        <p>Offline</p>
-      </ng-template>
-    </mat-card-content>
-    <mat-divider inset></mat-divider>
-    <mat-card-actions *ngIf="server.status && server.status.description.text == 'Offline' && !server.launch_pct">
-      <button type="button" (click)="mcServers.launch(server)" class="btn btn-success">Launch</button>
-    </mat-card-actions>
-    <mat-card-footer>
-      <mat-progress-bar *ngIf="server.launch_pct; else loadingBlock" mode="determinate" [value]="server.launch_pct"></mat-progress-bar>
-      <ng-template #loadingBlock>
-        <mat-progress-bar *ngIf="!server.status" mode="indeterminate"></mat-progress-bar>
-      </ng-template>
-    </mat-card-footer>
-  </mat-card>
+<div class="content-container">
+  <h2>Minecraft Servers</h2>
+  <div class="server-grid">
+    @for (server of mcServers.servers$ | async; track server.hostname) {
+      <mat-card class="server-card" [class.online]="server.online" appearance="outlined">
+        <div class="status-indicator" [class.online]="server.online"></div>
+        <mat-card-header>
+          <mat-card-title-group>
+            <mat-card-subtitle>{{server.hostname}}</mat-card-subtitle>
+            <mat-card-title>{{server.name}}</mat-card-title>
+            <img mat-card-sm-image
+              class="server-favicon"
+              [class.online]="server.online"
+              [src]="server.favicon || 'assets/generic-server.png'"
+              alt="Server Icon">
+          </mat-card-title-group>
+        </mat-card-header>
+        <mat-card-content>
+          <div>
+            <p>{{server.mc_version.name}}</p>
+            <p>{{server.description}}</p>
+            <p class="font-italic">{{server.players.online}} of {{server.players.max}} players online</p>
+          </div>
+        </mat-card-content>
+        @if (isServerLaunchable(server)) {
+          <mat-card-actions>
+            <button mat-raised-button
+              (click)="mcServers.launch(server)"
+            >
+                Launch Server
+            </button>
+          </mat-card-actions>
+        }
+        <mat-card-content>
+          @if (server.launch_pct !== undefined) {
+            <mat-progress-bar mode="determinate" [value]="server.launch_pct"></mat-progress-bar>
+          } @else {
+            @if (server.launch_time === undefined) {
+              <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+            }
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
 </div>
-<!-- <app-mcserver-add *ngIf="auth.authContext.user.admin"></app-mcserver-add> -->

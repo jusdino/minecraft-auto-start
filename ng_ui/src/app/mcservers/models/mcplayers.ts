@@ -1,6 +1,4 @@
-export class MCPlayers {
-  constructor(
-    max: number,
-    online: number
-  ) {}
+export interface MCPlayers {
+  max: number;
+  online: number;
 }

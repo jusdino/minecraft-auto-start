@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpHeaders, HttpClient } from '@angular/common/http';
-import { Observable, timer, of } from 'rxjs';
-import { concatMap, tap, catchError, map } from 'rxjs/operators';
+import { Observable, timer, of, forkJoin } from 'rxjs';
+import { concatMap, tap, catchError, map, switchMap, mergeMap } from 'rxjs/operators';
+
 
 import { AuthService } from '../auth/auth.service';
 import { MCServer } from './models/mcserver';
@@ -9,12 +10,131 @@ import { MCServer } from './models/mcserver';
 const BASE_URL: string = '../api/servers';
 
 
-@Injectable({
-	providedIn: 'root'
-})
+@Injectable()
 export class MCServersService {
-	public servers: Map<string, MCServer>;
-	public newServer: MCServer = new MCServer();
+    public servers!: Map<string, MCServer>;
+    public servers$: Observable<MCServer[]>;
+
+    constructor(
+        private http: HttpClient,
+        private auth: AuthService
+    ) {
+        // First get the initial servers list
+        this.servers$ = this.getServers().pipe(
+            // Switch to polling individual server details
+            switchMap(initialServers => {
+                // Create the polling observable for server details
+                return timer(0, 10000).pipe(
+                    // Map to current servers list
+                    map(() => {
+                        if (!this.servers) return [];
+                        return Array.from(this.servers.values());
+                    }),
+                    tap(servers => {
+                        // Start independent polling for each server
+                        servers.forEach(server => {
+                            this.getServerDetails(server).pipe(
+                                tap(detailedServer => {
+                                    const existingServer = this.servers.get(detailedServer.hostname);
+                                    if (existingServer) {
+                                        Object.assign(existingServer, detailedServer);
+                                        this.updateLaunchPercentage(existingServer);
+                                    }
+                                }),
+                                catchError(err => {
+                                    console.log(`Error updating ${server.name}:`, err);
+                                    return of(server);
+                                })
+                            ).subscribe();
+                        });
+                    }),
+                )
+            })
+        );
+    }
+
+    private getServers(): Observable<MCServer[]> {
+        console.log('Getting initial servers list');
+        const url: string = `${BASE_URL}/`;
+        const headers = this.getHeaders();
+        
+        return this.http.get<MCServer[]>(url, { headers }).pipe(
+            map(servers => servers.reduce((map, obj) => {
+                map.set(obj.hostname, obj);
+                return map;
+            }, new Map<string, MCServer>())),
+            tap(servers => this.servers = servers),
+            map(servers => Array.from(servers.values())),
+            catchError(err => {
+                console.log(err);
+                return of(<MCServer[]>[]);
+            })
+        );
+    }
+
+    private updateLaunchPercentage(server: MCServer): void {
+		if (server.online || !server.launching) {
+			server.launch_pct = undefined;
+			return;
+		}
+        if (server.launch_time !== undefined && server.launching === true) {
+            console.log(`Calculating launch_pct for ${server.name}`);
+            const timeoutMins = 15;
+            const launchTime = new Date(server.launch_time * 1000);
+            const currentTime = new Date();
+            const minutesAgo = (currentTime.getTime() - launchTime.getTime()) / (1000 * 60);
+            
+            if (minutesAgo < timeoutMins) {
+                const launchPct = (minutesAgo / timeoutMins) * 100;
+                server.launch_pct = launchPct;
+            } else {
+                server.launch_pct = undefined;
+            }
+        } else {
+            server.launch_pct = undefined;
+        }
+    }
+
+	getServerDetails(server: MCServer): Observable<MCServer> {
+		console.log(`Checking server: ${server.name}`);
+		const url: string = `${BASE_URL}/${server.hostname}`;
+		const headers = this.getHeaders();
+		return this.http.get<MCServer>(url, { headers: headers }).pipe(
+			catchError(err => {
+				console.log(err);
+				return of({...server});
+			})
+		);
+	}
+
+	public launch(server: MCServer) {
+		console.log('Launching server');
+		const url: string = `${BASE_URL}/${server.hostname}/launch`;
+		const headers = this.getHeaders();
+		server.launch_pct = 0.1;
+		this.http.put<MCServer>(url, null, { headers: headers }).pipe(
+			tap(_ => {
+				this.getServers().subscribe();
+			}),
+			catchError(err => {
+				console.log(err);
+				return new Observable();
+			})
+		).subscribe();
+	}
+
+	getHeaders() {
+		return new HttpHeaders({
+			'Content-Type': 'application/json',
+			'Authorization': `Bearer ${this.auth.getIdToken()}`
+		});
+	}
+}
+
+/*
+@Injectable()
+export class MCServersService {
+	public servers!: Map<string, MCServer>;
 	public servers$: Observable<MCServer[]>;
 
 	constructor(
@@ -22,7 +142,7 @@ export class MCServersService {
 		private auth: AuthService
 	) {
 		this.servers$ = timer(0, 5000).pipe(
-			concatMap( _ => this.getServers())
+			concatMap(_ => this.getServers())
 		);
 	}
 
@@ -30,51 +150,48 @@ export class MCServersService {
 		console.log('Checking servers');
 		const url: string = `${BASE_URL}/`;
 		const headers = this.getHeaders();
-		return this.http.get<MCServer[]>(url, {headers: headers}).pipe(
-			map( servers => servers.reduce((map, obj) => {
+		return this.http.get<MCServer[]>(url, { headers: headers }).pipe(
+			map(servers => servers.reduce((map, obj) => {
 				map.set(obj.hostname, obj);
 				return map;
 			}, new Map())),
 			tap(servers => {
 				servers.forEach((server, hostName) => {
 					if (this.servers) {
-						const prev_server = this.servers.get(server.hostname);
-						if (prev_server) {
-							server.hostname = prev_server.hostname;
-							if (prev_server.launch_time) {
-								server.launch_time = prev_server.launch_time;
-								server.launch_pct = prev_server.launch_pct;
-							} else {
-								server.launch_pct = null;
-							}
-							server.name = prev_server.name;
-							server.status = prev_server.status;
-							server.status_time = prev_server.status_time;
-							server.version = prev_server.version;
+						const prevServer = this.servers.get(server.hostname);
+						if (prevServer) {
+							Object.assign(server, prevServer);
 						}
 					}
 				});
 			}),
 			tap(servers => this.servers = servers),
-			tap(servers  => {
-				servers.forEach((server, hostName) => {
- 					this.getServerDetails(server).pipe(
+			tap(servers => {
+				servers.forEach((server: MCServer, hostName: string) => {
+					this.getServerDetails(server).pipe(
 						tap(detailedServer => {
-							server.hostname = detailedServer.hostname;
-							// Cast to number
-							if (detailedServer.launch_time) {
-								server.launch_time = +detailedServer.launch_time;
-								// Percent of a 10 minute timeout elapsed since launch_time
-								server.launch_pct = (Date.now()/1000 - server.launch_time)/6;
+							console.log('Detailed server from service:', detailedServer)
+							Object.assign(server, detailedServer);
+							// Calculate launch_pct if launch time is less than 15 minutes ago and it's still offline
+							if (server.launch_time !== undefined && server.launching === true) {
+								console.log(`Calculating launch_pct for ${server.name}`);
+								const timeoutMins = 15;
+								const launchTime = new Date(server.launch_time * 1000);
+								const currentTime = new Date();
+								const minutesAgo = (currentTime.getTime() - launchTime.getTime()) / (1000 * 60);
+								console.log('Minutes ago:', minutesAgo);
+								if (minutesAgo < timeoutMins) {
+									const launchPct = (minutesAgo / timeoutMins) * 100;
+									console.log('Setting launch_pct:', launchPct);
+									server.launch_pct = launchPct;
+								} else {
+									console.log('Unsetting launch_pct');
+									server.launch_pct = undefined;
+								}
 							} else {
-								server.launch_pct = null;
+								console.log('Unsetting launch_pct');
+								server.launch_pct = undefined;
 							}
-							server.name = detailedServer.name;
-							server.status = detailedServer.status;
-							if (detailedServer.status_time) {
-								server.status_time = +detailedServer.status_time;
-							}
-							server.version = detailedServer.version;
 						})
 					).subscribe();
 				});
@@ -89,54 +206,6 @@ export class MCServersService {
 		);
 	}
 
-	getServerDetails(server: MCServer): Observable<MCServer> {
-		console.log(`Checking server: ${server.name}`);
-		const url: string = BASE_URL + '/' + server.hostname;
-		const headers = this.getHeaders();
-		return this.http.get<MCServer>(url, {headers: headers}).pipe(
-			catchError(err => {
-				console.log(err);
-				return of();
-			})
-		);
-	}
 
-	public submitNew() {
-		console.log('Submitting new server');
-		const url: string = `${BASE_URL}/`;
-		const headers = this.getHeaders();
-		this.http.post<MCServer>(url, this.newServer, {headers: headers}).pipe(
-			tap( server => {
-				this.newServer = new MCServer();
-				this.getServers().subscribe();
-			}),
-			catchError(err => {
-				console.log(err);
-				return null;
-			})
-		).subscribe();
-	}
-
-	public launch(server: MCServer) {
-		console.log('Launching server');
-		const url: string = `${BASE_URL}/${server.hostname}`;
-		const headers = this.getHeaders();
-		server.launch_pct = 0.1;
-		this.http.put<MCServer>(url, null, {headers: headers}).pipe(
-			tap( server => {
-				this.getServers().subscribe();
-			}),
-			catchError(err => {
-				console.log(err);
-				return null;
-			})
-		).subscribe();
-	}
-
-	getHeaders() {
-		return new HttpHeaders({
-			'Content-Type': 'application/json',
-			'Authorization': `Bearer ${this.auth.authContext.session.getIdToken().getJwtToken()}`
-		});
-	}
 }
+*/

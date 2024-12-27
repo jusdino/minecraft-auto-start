@@ -1,0 +1,29 @@
+name: Check-Python
+
+on:
+  pull_request:
+    paths:
+      - cdk/**
+
+jobs:
+  TestPython:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Install dev dependencies
+        run: "pip install -r cdk/requirements-dev.txt"
+
+      - name: Install all dependencies
+        run: "cd cdk; bin/sync_deps.sh"
+
+      - name: Check Dependencies
+        run: "pip-audit"
+
+      - name: Test backend
+        run: "cd cdk; bin/run_tests.sh"

@@ -1,0 +1,4 @@
+moto[all]>=5.0,<6
+pip-tools>=6.12
+# For compatibility with cdk requirements
+attrs<24
