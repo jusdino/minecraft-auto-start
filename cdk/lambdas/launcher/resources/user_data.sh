@@ -61,6 +61,8 @@ elif [ __JAVA_VERSION__ -eq '21' ]; then
   yum install -y java-21-amazon-corretto-devel
 elif [ __JAVA_VERSION__ -eq '22' ]; then
   yum install -y java-22-amazon-corretto-devel
+elif [ __JAVA_VERSION__ -eq '25' ]; then
+  yum install -y java-25-amazon-corretto-headless
 fi
 
 cd "${DATA_DIR}"

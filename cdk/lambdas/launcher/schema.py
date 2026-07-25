@@ -30,7 +30,8 @@ class InstanceConfigSchema(Schema):
             '8',
             '17',
             '21',
-            '22'
+            '22',
+            '25'
         ])
     )
     s3_schematic_prefix = String(
